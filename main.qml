@@ -10,7 +10,9 @@ Window {
     height: 50
     color: "white"
     property string s:"hh:mm:ss"
-    Item {
+    Rectangle {
+        id:win
+        scale: 1
         Rectangle{
             anchors.fill: parent
 
@@ -56,6 +58,20 @@ Window {
                         else if(mouse.button===Qt.RightButton)
                                    m.popup()
                     }
+                    onWheel: (wheel)=>{
+                                 if(wheel.angleDelta.y>0)
+                                 {
+                                     win.scale+=0.1
+                                     window.width=140*win.scale
+                                     window.height=50*win.scale
+                                 }
+                                 else
+                                 {
+                                     win.scale-=0.1
+                                     window.width=140*win.scale
+                                     window.height=50*win.scale
+                                 }
+                             }
                 }
 
             }
