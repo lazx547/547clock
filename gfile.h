@@ -27,4 +27,4 @@ signals:
 
 };
 
-#endif // FILE_OBJECT_H
+#endif
