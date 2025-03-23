@@ -1,5 +1,12 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>FontAwesome.otf</file>
+        <file>DelIconButton.qml</file>
+        <file>DelButton.qml</file>
+        <file>CscrollBar.qml</file>
+        <file>Movetool.qml</file>
+        <file>Ccheckbox.qml</file>
+        <file>Qt.png</file>
     </qresource>
 </RCC>
