@@ -59,7 +59,11 @@ Rectangle{
         width: 170
         stepSize: 0.004
         snapMode: ScrollBar.SnapAlways
-        onPositionChanged: parent_.position=subscrollbar.position
+        onPositionChanged:
+        {
+            parent_.position=subscrollbar.position
+            text_show.text=Math.round(subscrollbar.position*(maxValue-minValue)+minValue)
+        }
     }
     Rectangle{
         id:value
@@ -76,7 +80,7 @@ Rectangle{
             verticalAlignment: Text.AlignVCenter
         }
     }
-    Button{
+    DelButton{
         visible: false
         id:reset_
         x:220

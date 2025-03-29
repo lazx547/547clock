@@ -8,38 +8,37 @@ import QtQuick.Dialogs
 Window {
     id: window
     visible: true
-    flags: Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+    flags: Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint//无边框 最上层
     width: 140
     height: 33
-    color: "#00000000"
-    property string s:"hh:mm:ss"
-    property int winw:140
-    property int winh:33
+    color: "#00000000"//背景透明（r,g,b,a）
+    property string s:"hh:mm:ss"//显示模式
+    property int winw:140//默认宽度
+    property int winh:33//默认高度
     //property int cwinw:140
-    property string file_q_source
 
     MouseArea{
         z:115678
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton |Qt.MiddleButton
         onClicked: (mouse)=>{
-                       if(mouse.button===Qt.MiddleButton && can_pau.checked  &&!can_s.checked)
+                       if(mouse.button===Qt.MiddleButton && can_pau.checked  &&!can_s.checked)//如果按下中键 同时 允许暂停 未锁定 则暂停
                        {
                            timer.running=!timer.running
                            textDateTime.text = Qt.formatDateTime(new Date(), s);
                        }
-                       else if(mouse.button===Qt.RightButton)
+                       else if(mouse.button===Qt.RightButton)//如果按下右键 显示右键菜单
                        {
                            yjcd.x=mouseX+window.x
                            yjcd.y=mouseY+window.y
-                           if(mouseY+window.y>=yjcd.height) yjcd.y-=yjcd.height
+                           if(mouseY+window.y>=yjcd.height) yjcd.y-=yjcd.height//如果窗口上方的高度不足以显示右键菜单，就显示在窗口下方
                            yjcd.visible=true
                        }
 
 
                    }
-        onWheel: (wheel)=>{
-                     if(!can_s.checked)
+        onWheel: (wheel)=>{//滚动鼠标滚轮时缩放窗口
+                     if(!can_s.checked)//如果未锁定
                      {
                          if(wheel.angleDelta.y>0)
                          {
@@ -49,13 +48,13 @@ Window {
                          }
                          else
                          {
-                             if(window.width>=30){
+                             if(window.width>=30){//如果窗口宽度大于30，防止缩放过小时窗口直接消失
                                  win.scale-=0.1
                                  window.width=winw*win.scale
                                  window.height=winh*win.scale
                              }
                          }
-                         sb2.position=(win.scale-0.1)/8
+                         sb2.position=(win.scale-0.1)/8//同时修改“缩放”滚动条位置
                      }
                  }
     }
@@ -82,8 +81,7 @@ Window {
         scale: 1
         Item {
             anchors.fill: parent
-            //显示
-            Text{
+            Text{//显示时间
                 id: textDateTime
                 text: Qt.formatDateTime(new Date(), s);
                 font.pixelSize: 35
@@ -91,23 +89,25 @@ Window {
                 anchors.verticalCenterOffset: 0
                 anchors.horizontalCenterOffset: 0
             }
-
-            //定时器
-            Timer{
+            Timer{//定时器 刷新时间
                 id: timer
-                interval: 100 //间隔(单位毫秒):1000毫秒=1秒
+                interval: 100 //间隔(单位毫秒=10^-3秒）
                 running: false
                 repeat: true //重复
                 onTriggered:{
-                    if(top_.checked)window.flags=Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+                    // if(top_.checked)
+                    // {
+                    //     window.flags=Qt.FramelessWindowHint
+                    //     window.flags=Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+                    // }
                     textDateTime.text = Qt.formatDateTime(new Date(), s);
                 }
             }
-            Timer{
+            Timer{//定时器 初始化程序/同步时间-即在整秒时启动计时器
                 id:timer_set
                 interval: 1
-                property bool f:true
-                property bool f2:true
+                property bool f:true//是否是第一次循环
+                property bool f2:true//是否读取保存的状态
                 running: true
                 repeat: true
                 onTriggered:{
@@ -120,9 +120,9 @@ Window {
                     {
                         if(textDateTime.text==Qt.formatDateTime(new Date(), s))
                         {
-                            timer.running=true
+                            timer.running=true//在整秒时启动刷新时间的计时器，使时间更准确
                             running=false
-                            if(f2){
+                            if(f2){//
                                 f2=false
                                 file_q.read_()
                             }
@@ -131,13 +131,13 @@ Window {
                 }
             }
         }
-        onScaleChanged: {
+        onScaleChanged: {//当缩放修改时同步修改边框大小、背景&边框圆角大小
             winn.radius=rad_.position*win.height/2
             winm.radius=rad_.position*win.height/2
             winn.border.width=f_r.position*win.scale*18
         }
         anchors.fill: parent
-        DragHandler {
+        DragHandler {//按下拖动以移动窗口
             grabPermissions: TapHandler.CanTakeOverFromAnything
             onActiveChanged: {
                 if (active &&!can_s.checked)
@@ -147,104 +147,97 @@ Window {
             }
         }
     }
-    GFile{
+    GFile{//文件操作
         id:file_q
-        function save()
+        function save()//正常保存
         {
             file_q.save2("./value.1")
         }
         function save2(b){
-            var a=colo_r.position.toString()+","
-            a+=colo_g.position.toString()+","
-            a+=colo_b.position.toString()+","
-            a+=colo_br.position.toString()+","
-            a+=colo_bb.position.toString()+","
-            a+=colo_bg.position.toString()+","
-            a+=op_a.position.toString()+","
-            a+=op_b.position.toString()+","
-            a+=textDateTime.font.pixelSize.toString()+","
-            a+=f_r.position.toString()+","
-            a+=rad_.position.toString()+","
-            a+=wid.position.toString()+","
-            a+=hei.position.toString()+","
-            a+=top_.checked.toString()+","
-            a+=can_pau.checked.toString()+","
-            a+=show_type.checked.toString()+","
+            var a=colo_r.position.toString()+","//文字&边框颜色-r值
+            a+=colo_g.position.toString()+","   //           -g值
+            a+=colo_b.position.toString()+","   //           -b值
+            a+=colo_br.position.toString()+","  //背景颜色-r值
+            a+=colo_bb.position.toString()+","  //       -g值
+            a+=colo_bg.position.toString()+","  //       -b值
+            a+=op_a.position.toString()+","     //透明度-全局
+            a+=op_b.position.toString()+","     //透明度-背景
+            a+=f_r.position.toString()+","      //字体大小
+            a+=rad_.position.toString()+","     //圆角大小
+            a+=wid.position.toString()+","      //宽度
+            a+=hei.position.toString()+","      //高度
+            a+=top_.checked.toString()+","      //是否显示在最上层
+            a+=can_pau.checked.toString()+","   //是否允许暂停
+            a+=show_type.checked.toString()+"," //显是否显示秒
+            a+=f_b.checked.toString()+","       //字体是否加粗
             file_q.source=b
             file_q.write(a)
         }
 
-        function read_(){
+        function read_(){//判断是否是第一次启动
             var a=0
-            file_q.create(file_q_source)
+            file_q.create("./")
             file_q.source="./is.1"
             if(file_q.is(file_q.source))
             {
-                if(file_q.read()==="true")
-                {
-
-                    file_q.read2("./value.1")
-                }
+                if(file_q.read()==="true")//不是第一次启动
+                    file_q.read2("./value.1")//读取保存的状态
             }
-            if(a==0)
+            if(a==0)//是第一次启动
             {
                 file_q.source="./is.1"
                 file_q.write("true")
-                file_q.save()
+                file_q.save()//保存当前状态
             }
         }
-        function read2(a){
+        function read2(a){//读取保存的状态
             file_q.source=a
             var s=file_q.read()
-            colo_r.position=s.slice(0,s.indexOf(","))
+            colo_r.position=s.slice(0,s.indexOf(","))   //文字&边框颜色-r值
             s=s.slice(s.indexOf(",")+1,s.length)
-            colo_g.position=s.slice(0,s.indexOf(","))
+            colo_g.position=s.slice(0,s.indexOf(","))   //           -g值
             s=s.slice(s.indexOf(",")+1,s.length)
-            colo_b.position=s.slice(0,s.indexOf(","))
+            colo_b.position=s.slice(0,s.indexOf(","))   //           -b值
             s=s.slice(s.indexOf(",")+1,s.length)
-            colo_br.position=s.slice(0,s.indexOf(","))
+            colo_br.position=s.slice(0,s.indexOf(","))  //背景颜色-r值
             s=s.slice(s.indexOf(",")+1,s.length)
-            colo_bb.position=s.slice(0,s.indexOf(","))
+            colo_bb.position=s.slice(0,s.indexOf(","))  //       -g值
             s=s.slice(s.indexOf(",")+1,s.length)
-            colo_bg.position=s.slice(0,s.indexOf(","))
+            colo_bg.position=s.slice(0,s.indexOf(","))  //       -b值
             s=s.slice(s.indexOf(",")+1,s.length)
-            op_a.position=s.slice(0,s.indexOf(","))
+            op_a.position=s.slice(0,s.indexOf(","))     //透明度-全局
             s=s.slice(s.indexOf(",")+1,s.length)
-            op_b.position=s.slice(0,s.indexOf(","))
+            op_b.position=s.slice(0,s.indexOf(","))     //透明度-背景
             s=s.slice(s.indexOf(",")+1,s.length)
-            textDateTime.font.pixelSize=s.slice(0,s.indexOf(","))
+            f_r.position=s.slice(0,s.indexOf(","))      //字体大小
             s=s.slice(s.indexOf(",")+1,s.length)
-            f_r.position=s.slice(0,s.indexOf(","))
+            rad_.position=s.slice(0,s.indexOf(","))     //圆角大小
             s=s.slice(s.indexOf(",")+1,s.length)
-            rad_.position=s.slice(0,s.indexOf(","))
+            wid.position=s.slice(0,s.indexOf(","))      //宽度
             s=s.slice(s.indexOf(",")+1,s.length)
-            wid.position=s.slice(0,s.indexOf(","))
+            hei.position=s.slice(0,s.indexOf(","))      //高度
             s=s.slice(s.indexOf(",")+1,s.length)
-            hei.position=s.slice(0,s.indexOf(","))
+            top_.checked=s.slice(0,s.indexOf(","))=="true"?true:false       //是否显示在最上层
             s=s.slice(s.indexOf(",")+1,s.length)
-            top_.checked=s.slice(0,s.indexOf(","))=="true"?true:false
+            can_pau.checked=s.slice(0,s.indexOf(","))=="true"?true:false    //是否允许暂停
             s=s.slice(s.indexOf(",")+1,s.length)
-            can_pau.checked=s.slice(0,s.indexOf(","))=="true"?true:false
+            show_type.checked=s.slice(0,s.indexOf(","))=="true"?true:false  //显是否显示秒
             s=s.slice(s.indexOf(",")+1,s.length)
-            show_type.checked=s.slice(0,s.indexOf(","))=="true"?true:false
+            f_b.checked=s.slice(0,s.indexOf(","))=="true"?true:false        //字体是否加粗
             a=1
         }
     }
-    Component.onCompleted: {
-
-    }
-    Window{
+    Window{//右键菜单
         id:yjcd
-        flags:Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+        flags:Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint//无边框 最上层
         width: 180
         height: 424
         color: "#00000000"
-        onActiveFocusItemChanged: {
+        onActiveFocusItemChanged: {//失去焦点时隐藏
             if(!activeFocusItem)
                 visible=false
         }
-        Component.onCompleted: {}
-        Rectangle{
+        Rectangle{//背景 实现圆角
             anchors.fill: parent
             radius: 5
         }
@@ -261,7 +254,7 @@ Window {
             Item{
                 id:move
                 y:534
-                DelButton{
+                DelButton{//关闭按钮
                     text: qsTr("关闭")
                     width: 50
                     height: 30
@@ -270,7 +263,7 @@ Window {
                         Qt.exit(0)
                     }
                 }
-                DelButton{
+                DelButton{//保存按钮
                     text:"保存"
                     font.pixelSize: 16
                     width: 50
@@ -278,7 +271,7 @@ Window {
                     height: 30
                     onClicked: file_q.save()
                 }
-                Movetool{
+                Movetool{//窗口移动工具
                     x:100
                     window:window
                 }
@@ -288,7 +281,7 @@ Window {
                 id:cd
 
                 Item{
-                    CscrollBar{
+                    CscrollBar{//滚动条 右键菜单缩放 bug
                         id:f12_1
                         visible: false
                         y:0
@@ -308,7 +301,7 @@ Window {
                     id:checks
                     y:0
                     width: 120
-                    Ccheckbox{
+                    Ccheckbox{//是否显示在最上层
                         id:top_
                         width: 200
                         height: 20
@@ -320,7 +313,7 @@ Window {
                             yjcd.visible=false
                         }
                     }
-                    Ccheckbox{
+                    Ccheckbox{//是否允许暂停
                         id:can_pau
                         width: 200
                         height: 20
@@ -331,7 +324,7 @@ Window {
                             yjcd.visible=false
                         }
                     }
-                    Ccheckbox{
+                    Ccheckbox{//锁定
                         id:can_s
                         width: 200
                         height: 20
@@ -343,7 +336,7 @@ Window {
                             yjcd.visible=false
                         }
                     }
-                    Ccheckbox{
+                    Ccheckbox{//是否显示秒
                         id:show_type
                         width: 200
                         height: 20
@@ -358,21 +351,11 @@ Window {
                             yjcd.visible=false
                         }
                     }
-                    /*
-                    Item{
-                        y:30
-                        TextEdit {
-                            id:sc
-                            text: "0"
-                            horizontalAlignment: Text.Center
-                            font.pixelSize: 10
-                        }
-                    }*/
                 }
                 Item{
                     id:appea
                     y:show_type.y+20
-                    Item{
+                    Item{//调整透明度
                         id:opac
                         Text {
                             y:2
@@ -380,7 +363,7 @@ Window {
                             font.pixelSize: 20
                             text: "透明度"
                         }
-                        CscrollBar{
+                        CscrollBar{//全局透明度
                             y:25
                             id:op_a
                             text:"全局"
@@ -389,7 +372,7 @@ Window {
                             }
                             position: 1
                         }
-                        CscrollBar{
+                        CscrollBar{//背景透明度
                             y:45
                             id:op_b
                             text:"背景"
@@ -399,7 +382,7 @@ Window {
                             position: 1
                         }
                     }
-                    Item{
+                    Item{//调整大小
                         id:scale_
                         y:opac.y+60
                         Text{
@@ -408,7 +391,7 @@ Window {
                             font.pixelSize: 20
                         }
 
-                        CscrollBar{
+                        CscrollBar{//调整缩放
                             y:25
                             text:"缩放"
                             id:sb2
@@ -424,7 +407,7 @@ Window {
                             position: 0.125
                             stepSize: 0.001
                         }
-                        CscrollBar{
+                        CscrollBar{//调整宽度
                             y:45
                             text:"宽度"
                             id:wid
@@ -439,7 +422,7 @@ Window {
                             position: 0.28
                             //Component.onCompleted: position=140/(win.width*win.scale-100)
                         }
-                        CscrollBar{
+                        CscrollBar{//调整高度
                             y:65
                             text:"高度"
                             id:hei
@@ -456,7 +439,7 @@ Window {
                         }
                     }
 
-                    Item{
+                    Item{//调整字体
                         id:font_
                         y:scale_.y+80
                         Text{
@@ -464,7 +447,7 @@ Window {
                             text:"字体"
                             font.pixelSize: 20
                         }
-                        CscrollBar{
+                        CscrollBar{//调整字号
                             id:font_size
                             y:26
                             reset:true
@@ -476,7 +459,7 @@ Window {
                                 textDateTime.font.pixelSize=position*100
                             }
                         }
-                        Ccheckbox{
+                        Ccheckbox{//字体是否加粗
                             text: "加粗"
                             width: 50
                             height: 20
@@ -488,10 +471,10 @@ Window {
                                 textDateTime.font.bold=checked
                             }
                         }
-                        Item {
+                        Item {//调整文字位置
                             y:6
                             x:120
-                            DelButton{
+                            DelButton{//上移
                                 id:up
                                 width: 20
                                 height: 20
@@ -503,7 +486,7 @@ Window {
                                     textDateTime.anchors.verticalCenterOffset-=1
                                 }
                             }
-                            DelButton{
+                            DelButton{//下移
                                 id:down
                                 width: 20
                                 height: 20
@@ -515,7 +498,7 @@ Window {
                                    textDateTime.anchors.verticalCenterOffset+=1
                                 }
                             }
-                            DelButton{
+                            DelButton{//左移
                                 id:left
                                 width: 20
                                 height:20
@@ -526,7 +509,7 @@ Window {
                                     textDateTime.anchors.horizontalCenterOffset-=1
                                 }
                             }
-                            DelButton{
+                            DelButton{//右移
                                 id:right
                                 width: 20
                                 height: 20
@@ -539,7 +522,7 @@ Window {
                             }
                         }
                     }
-                    Item{
+                    Item{//调整边框
                         y:font_.y+45
                         id:bord
                         Text{
@@ -547,7 +530,7 @@ Window {
                             text:"边框"
                             font.pixelSize: 20
                         }
-                        CscrollBar{
+                        CscrollBar{//调整边框大小
                             id:f_r
                             y:25
                             text:"大小"
@@ -557,7 +540,7 @@ Window {
                             position: 0.1
                             Component.onCompleted: position=1.8/20
                         }
-                        CscrollBar{
+                        CscrollBar{//调整圆角大小
                             y:f_r.y+20
                             id:rad_
                             text:"圆角"
@@ -568,14 +551,14 @@ Window {
                             position: 0.1
                         }
                     }
-                    Rectangle{
+                    Rectangle{//调整颜色
                         id:colo
                         y:bord.y+68
                         Text{
                             text:"颜色"
                             font.pixelSize: 20
                         }
-                        Item{
+                        Item{//预设
                             id:colors
                             x:40
                             y:3
@@ -587,18 +570,18 @@ Window {
                                 text: "粉色"
                                 font.pixelSize: 18
                                 onClicked:  {
-                                    colo_r.position=1
+                                    colo_r.position=1//文字&边框颜色
                                     colo_g.position=0.56
                                     colo_b.position=0.74
                                     textDateTime.color=Qt.rgba(colo_r.position,colo_g.position,colo_b.position)
                                     winn.border.color=Qt.rgba(colo_r.position,colo_g.position,colo_b.position)
-                                    colo_br.position=0.64
+                                    colo_br.position=0.64//背景颜色
                                     colo_bg.position=0.64
                                     colo_bb.position=0.64
                                     winm.color=Qt.rgba(colo_br.position,colo_bg.position,colo_bb.position)
-                                    f_r.position=0
-                                    rad_.position=0.72
-                                    op_b.position=0.31
+                                    f_r.position=0//字体大小
+                                    rad_.position=0.72//圆角大小
+                                    op_b.position=0.31//背景透明度
                                 }
                             }
                             DelButton{
@@ -608,12 +591,12 @@ Window {
                                 text: "浅色"
                                 font.pixelSize: 18
                                 onClicked:  {
-                                    colo_r.position=0
+                                    colo_r.position=0//文字&边框颜色
                                     colo_g.position=0
                                     colo_b.position=0
                                     textDateTime.color=Qt.rgba(colo_r.position,colo_g.position,colo_b.position)
                                     winn.border.color=Qt.rgba(colo_r.position,colo_g.position,colo_b.position)
-                                    colo_br.position=1
+                                    colo_br.position=1//背景颜色
                                     colo_bg.position=1
                                     colo_bb.position=1
                                     winm.color=Qt.rgba(colo_br.position,colo_bg.position,colo_bb.position)
@@ -626,12 +609,12 @@ Window {
                                 text: "深色"
                                 font.pixelSize:18
                                 onClicked:  {
-                                    colo_r.position=1
+                                    colo_r.position=1//文字&边框颜色
                                     colo_g.position=1
                                     colo_b.position=1
                                     textDateTime.color=Qt.rgba(colo_r.position,colo_g.position,colo_b.position)
                                     winn.border.color=Qt.rgba(colo_r.position,colo_g.position,colo_b.position)
-                                    colo_br.position=0
+                                    colo_br.position=0//背景颜色
                                     colo_bg.position=0
                                     colo_bb.position=0
                                     winm.color=Qt.rgba(colo_br.position,colo_bg.position,colo_bb.position)
@@ -771,23 +754,19 @@ Window {
                     }
                     DelButton{
                         id:date_reset
-                        width: 100
+                        width: 140
                         height: 20
                         x:0
                         y:20
-                        text: "重置"
+                        text: "不保存并退出"
                         font.pixelSize:16
-                        onClicked: {
-                            file_q.source=file_q_source+"/is.1"
-                            file_q.write("false")
-                            file_q.read2("./value.1")
-                        }
+                        onClicked: Qt.exit(0)
                     }
                     DelButton{
                         text:"关于"
                         font.pixelSize: 16
-                        width: 100
-                        x:100
+                        width: 60
+                        x:140
                         y:20
                         height: 20
                         onClicked: about.visible=true

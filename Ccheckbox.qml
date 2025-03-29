@@ -3,9 +3,6 @@ import QtQuick.Controls
 
 Item {
     id: control
-
-    property bool animationEnabled: true
-        property bool effectEnabled: true
     property int radiusBg: 6
     property color colorText:"#000000"
     property color colorBg: checked? "#2955ff":"white";
