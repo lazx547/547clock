@@ -3,10 +3,10 @@ import QtQuick.Controls
 
 Item {
     property var window
-    DelButton{
+    Cbutton{
         id:up
-        width: 30
-        height: 30
+        width: 25
+        height: 25
         x:0
         rotation: 90
         text: "<"
@@ -14,39 +14,47 @@ Item {
         {
             window.y-=1
         }
+        toolTipText: "窗口上移一单位"
+        radiusBg: 0
     }
-    DelButton{
+    Cbutton{
         id:down
-        width: 30
-        height: 30
+        width: 25
+        height: 25
         rotation: 90
-        x:30
+        x:25
         text: ">"
         onClicked:
         {
             window.y+=1
         }
+        toolTipText: "窗口下移一单位"
+        radiusBg: 0
     }
-    DelButton{
+    Cbutton{
         id:left
-        width: 30
-        height: 30
-        x:60
+        width: 25
+        height: 25
+        x:50
         text: "<"
         onClicked:
         {
             window.x-=1
         }
+        toolTipText: "窗口左移一单位"
+        radiusBg: 0
     }
-    DelButton{
+    Cbutton{
         id:right
-        width: 30
-        height: 30
-        x:90
+        width: 25
+        height: 25
+        x:75
         text: ">"
         onClicked:
         {
             window.x+=1
         }
+        toolTipText: "窗口右移一单位"
+        radiusBg: 0
     }
 }

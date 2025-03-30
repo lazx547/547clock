@@ -18,6 +18,7 @@ public:
     Q_INVOKABLE QString getUser();
     Q_INVOKABLE void setSource(const QString& source) { m_source = source; };
     Q_INVOKABLE QString source() { return m_source; }
+    Q_INVOKABLE qreal getSysScale(){return 0;}
     QString m_source;
 
 

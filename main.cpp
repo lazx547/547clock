@@ -2,14 +2,17 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <gfile.h>
-#include "delbuttontype.h"
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QGuiApplication::setAttribute(Qt::AA_Use96Dpi);
+    GFile file;
+    file.setSource("./scale.txt");
+    QString s=file.read();
+    qputenv("QT_SCALE_FACTOR",s.toLatin1());
 
-    qmlRegisterUncreatableMetaObject(DelButtonType::staticMetaObject, "DelegateUI.Controls", 1, 0
-                                     , "DelButtonType", "Access to enums & flags only");
+
+    QGuiApplication app(argc, argv);
 
     qmlRegisterType<GFile>("GFile",1,2,"GFile");
     QQmlApplicationEngine engine;
