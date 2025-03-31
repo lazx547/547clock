@@ -35,3 +35,5 @@ HEADERS += \
     gfile.h
 
 DISTFILES +=
+
+VERSION = 0.9

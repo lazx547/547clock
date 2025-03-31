@@ -85,9 +85,7 @@ Item{
             border.color: pickerItem_.down ? "#1677ff" : pickerItem_.hovered ? "#69b1ff" : "#80808080";
             border.width: 2
             scale: 0.9
-            property real value: {
-                x / (pickerItem_.width - width)
-            }
+            property real value: x / (pickerItem_.width - width)
         }
 
         MouseArea {
@@ -99,10 +97,7 @@ Item{
             }
             onPressed: (mouse) => {
                            handleCursorPos(mouse.x, mouse.y);
-                           //slider.border.color="#1677ff"
                        }
-            // onEntered: slider.border.color="#4096ff"
-            // onExited: parent.border.color="#e6e6e6"
             onPositionChanged: (mouse) => handleCursorPos(mouse.x);
         }
     }
@@ -117,7 +112,7 @@ Item{
         Text{
             anchors.fill: parent
             id:vr
-            text:(slider.value * (maxValue-minValue)).toFixed(0);
+            text:(slider.value * (maxValue-minValue)).toFixed(0)
             font.pixelSize: 14
             horizontalAlignment:Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter

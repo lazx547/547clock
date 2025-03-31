@@ -17,6 +17,9 @@ Window {
     y:200
     color: "#00000000"//背景透明（r,g,b,a）
     opacity: alpSlider.value
+    readonly property real scale:Screen.devicePixelRatio
+    readonly property real winwid:window.screen.width
+    readonly property real winhei:window.screen.height
     property string s:"hh:mm:ss"//显示模式
     property int winw:140//默认宽度
     property int winh:33//默认高度
@@ -41,11 +44,12 @@ Window {
                        {
                            yjcd.x=mouseX+window.x
                            yjcd.y=mouseY+window.y
-                           if(mouseY+window.y>=yjcd.height) yjcd.y-=yjcd.height//如果窗口上方的高度不足以显示右键菜单，就显示在窗口下方
+                           if(yjcd.y+yjcd.height>winhei) yjcd.y-=yjcd.height//如果窗口上方的高度不足以显示右键菜单，就显示在窗口下方
+                           if(yjcd.x+yjcd.width>winwid) yjcd.x-=yjcd.width
                            yjcd.visible=true
                        }
-
-
+                       else if(mouse.button===Qt.LeftButton)
+                           yjcd.visible=false
                    }
         onWheel: (wheel)=>{//滚动鼠标滚轮时缩放窗口
                      if(true&&!can_s.checked)//如果未锁定
@@ -141,15 +145,6 @@ Window {
             winn.border.width=f_r.value*win.scale*18
         }
         anchors.fill: parent
-        DragHandler {//按下拖动以移动窗口
-            grabPermissions: TapHandler.CanTakeOverFromAnything
-            onActiveChanged: {
-                if (active && !can_s.checked)
-                {
-                    window.startSystemMove()
-                }
-            }
-        }
     }
     GFile{//文件操作
         id:file_q
@@ -257,27 +252,78 @@ Window {
         icon.source: "qrc:/sys_Tray.png"
         id:tray
         menu: Menu {
+
+            MenuItemGroup{
+                id:sys_a
+            }
+
             MenuItem {
-                id:sys_sh
-                text: qsTr("隐藏窗口")
-                onTriggered: {
-                    if(sys_sh.text=="显示窗口")
-                    {
-                        window.visible=true
-                        sys_sh.text="隐藏窗口"
-                    }
+                id:sys_top
+                text: qsTr("置顶")
+                checkable: true
+                checked: true
+                group: sys_a
+                onCheckedChanged: top_.checked=checked
+            }
+            MenuItem {
+                id:sys_dow
+                text: qsTr("最底层")
+                checkable: true
+                checked: true
+                group: sys_a
+                onCheckedChanged: {
+                    top_.checked=!checked
+                    if(checked)
+                        window.flags=Qt.FramelessWindowHint|Qt.WindowStaysOnBottomHint
                     else
                     {
-                        window.visible=false
-                        sys_sh.text="显示窗口"
+                        window.flags=Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
                     }
                 }
             }
+            MenuItem{
+                separator : true
+            }
             MenuItem {
-                text: qsTr("退出")
+                id:sys_sh
+                text: qsTr("隐藏")
+                checkable: true
+                checked: false
+                onCheckedChanged: {
+                    if(checked)
+                        window.visible=false
+                    else
+                        window.visible=true
+                }
+            }
+            MenuItem{
+                separator : true
+            }
+            MenuItem{
+                text:"重载数据"
+                onTriggered: file_q.read2("./value.1")
+            }
+            MenuItem{
+                text:"保存数据"
+                onTriggered: file_q.save()
+            }
+            MenuItem{
+                separator : true
+            }
+            MenuItem{
+                text:"不保存并退出"
                 onTriggered: Qt.quit()
             }
+            MenuItem {
+                text: qsTr("保存并退出")
+                onTriggered: {
+                    file_q.save()
+                    Qt.quit()
+                }
+                onHovered: color="#ff0000"
+            }
         }
+
     }
     Window{//右键菜单
         id:yjcd
@@ -296,17 +342,14 @@ Window {
             border.color: "#80808080"
             border.width: 2
         }
-
-        Rectangle
+        Item
         {
-            transformOrigin: Item.TopLeft
             width: 200
             height: 320
             id:cd_
             x:2
             y:2
             Item{
-                id:move
                 y:parent.height-50
                 ImaButton{//关闭按钮
                     y:25
@@ -338,7 +381,6 @@ Window {
                     img: "qrc:/images/hide.png"
                     x:50
                     onClicked: {
-                        sys_sh.text="显示窗口"
                         window.visible=false
                         yjcd.visible=false
                     }
@@ -442,7 +484,7 @@ Window {
                             x:90
                             y:25
                             font.pixelSize: 20
-                            text:"Made with Qt6"
+                            text:"Made with Qt6 (qml)"
                         }
                         Text {
                             x:90
@@ -457,6 +499,7 @@ Window {
                             y:80
                             height: 20
                             onClicked: Qt.openUrlExternally("https://github.com/lazx547/547clock")
+                            toolTipText: "打开github"
                         }
                         Cbutton{
                             text:"547官网"
@@ -466,6 +509,7 @@ Window {
                             y:80
                             height: 20
                             onClicked: Qt.openUrlExternally("https://lazx547.github.io")
+                            toolTipText: "打开547官网"
                         }
                     }
                 }
@@ -487,6 +531,7 @@ Window {
                             img="qrc:/images/top.png"
                             window.flags=Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
                         }
+                        sys_top.checked=checked
                         yjcd.visible=false
                     }
                     onClicked: checked=!checked
@@ -590,12 +635,6 @@ Window {
                 // }
                 // }
             }
-        }
-
-        Item{
-            id:cd
-            x:2
-            y:2
             Item{
                 id:appea
                 y:0
@@ -974,6 +1013,7 @@ Window {
                                 {
                                     pick_f.x=yjcd.x+cd_.width
                                     pick_f.y=yjcd.y+appea.y+colo.y+20
+                                    if(pick_f.x+pick_f.width>winwid) pick_f.x-=yjcd.width+pick_f.width
                                     hidewindows()
                                     pick_f.visible=true
                                 }
@@ -1039,6 +1079,7 @@ Window {
                                 {
                                     pick_d.x=yjcd.x+cd_.width
                                     pick_d.y=yjcd.y+appea.y+colo.y+40
+                                    if(pick_d.x+pick_d.width>winwid) pick_d.x-=yjcd.width+pick_d.width
                                     hidewindows()
                                     pick_d.visible=true
                                 }
@@ -1104,6 +1145,7 @@ Window {
                                 {
                                     pick_b.x=yjcd.x+cd_.width
                                     pick_b.y=yjcd.y+appea.y+colo.y+60
+                                    if(pick_b.x+pick_b.width>winwid) pick_b.x-=yjcd.width+pick_b.width
                                     pick_f.visible=false
                                     pick_b.visible=true
                                 }
@@ -1126,6 +1168,16 @@ Window {
                         }
                     }
                 }
+            }
+        }
+    }
+    DragHandler {//按下拖动以移动窗口
+        grabPermissions: TapHandler.CanTakeOverFromAnything
+        onActiveChanged: {
+            if (active && !can_s.checked)
+            {
+                yjcd.visible=false
+                window.startSystemMove()
             }
         }
     }
