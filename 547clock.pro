@@ -20,7 +20,7 @@ SOURCES += \
         gfile.cpp \
         main.cpp
 
-RESOURCES += qml.qrc
+RESOURCES +=
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -37,6 +37,13 @@ HEADERS += \
     erwindow.h \
     gfile.h
 
-DISTFILES +=
+DISTFILES += \
+    Cbutton.qml \
+    Ccheckbox.qml \
+    ColorPicker.qml \
+    CscrollBar.qml \
+    ImaButton.qml \
+    Movetool.qml \
+    main.qml
 
 VERSION = 0.9
