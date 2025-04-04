@@ -1,7 +1,9 @@
 #include "gfile.h"
 #include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <gfile.h>
+#include "erwindow.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,17 +14,23 @@ int main(int argc, char *argv[])
     qputenv("QT_SCALE_FACTOR",s.toLatin1());
 
 
-    QGuiApplication app(argc, argv);
 
+    QGuiApplication app(argc, argv);
+    QApplication app2(argc, argv);
+    ErWindow w;
     qmlRegisterType<GFile>("GFile",1,2,"GFile");
     QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
-            QCoreApplication::exit(-1);
+    const QUrl url(QStringLiteral("./file/main.qml"));
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,&app, [url](QObject *obj, const QUrl &objUrl) {
+            if (!obj && url == objUrl)
+            QCoreApplication::exit(-2);
     }, Qt::QueuedConnection);
-    engine.load(url);
-
+    if(!file.is(url.toString())){
+        w.show();
+    }
+    else
+    {
+        engine.load(url);
+    }
     return app.exec();
 }
