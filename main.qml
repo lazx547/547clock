@@ -208,6 +208,11 @@ Window{
         width: 204
         height:334
         color:"transparent"
+        onActiveFocusItemChanged: {//失去焦点时隐藏
+            if(!activeFocusItem && !color_text.active && !color_border.active && !color_back.active)
+                visible=false
+
+        }
         Rectangle{
             id:menu_back
             width: menu.width
