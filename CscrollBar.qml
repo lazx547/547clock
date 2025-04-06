@@ -112,7 +112,7 @@ Item{
         Text{
             anchors.fill: parent
             id:vr
-            text:(slider.value * (maxValue-minValue)).toFixed(0)
+            text:(slider.value * (maxValue-minValue)+minValue).toFixed(0)
             font.pixelSize: 14
             horizontalAlignment:Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -121,7 +121,7 @@ Item{
     ImaButton{
         radiusBg: 0
         id:reseter
-        img:"qrc:/images/reset.png"
+        img:"./images/reset.png"
         x:185
         visible: false
         width: 15

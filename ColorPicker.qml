@@ -4,17 +4,17 @@ import Qt5Compat.GraphicalEffects
 
 Window {
     id: root
-    width: 140
+    width: 160
     height: 80
     readonly property real r:redSlider.value
     readonly property real g:greSlider.value
     readonly property real b:bluSlider.value
     readonly property real a:alpSlider.value
     function setColor(r_,g_,b_,a_){
-        redSlider.x = Math.max(0,r_*(redPicker.width-redSlider.width))
-        greSlider.x = Math.max(0,g_*(redPicker.width-redSlider.width))
-        bluSlider.x = Math.max(0,b_*(redPicker.width-redSlider.width))
-        alpSlider.x = Math.max(0,a_*(redPicker.width-redSlider.width))
+        redScroll.setValue(r_)
+        greScroll.setValue(g_)
+        bluScroll.setValue(b_)
+        alpScroll.setValue(a_)
     }
 
     flags: Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
@@ -36,7 +36,7 @@ Window {
         property point offsetPos: Qt.point(0, 0)
 
         Item{
-            x:102
+            x:122
             Item {
                 id: previewItem
                 width: 38
@@ -132,194 +132,314 @@ Window {
             }
         }
 
-        Rectangle {
-            id: redPicker
-            width: 100
-            height: 15
-            x:0
-            y:0
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0;  color: Qt.rgba(0,greSlider.value,bluSlider.value) }
-                GradientStop { position: 1.0;  color: Qt.rgba(1,greSlider.value,bluSlider.value) }
+        Item{
+            id:redScroll
+            function setValue(vl){
+                redSlider.x = Math.min(Math.max(0,vl*(redPicker.width-redSlider.width)),redPicker.width-redSlider.width)
             }
-
+            Cbutton{
+                width: 10
+                height: 15
+                radiusBg: 0
+                padding: 0
+                topPadding:0
+                bottomPadding: 0
+                text: "<"
+                onClicked: redScroll.setValue(redSlider.value-1/256)
+                toolTipText: "减小"
+            }
+            Cbutton{
+                width: 10
+                height: 15
+                x:110
+                radiusBg: 0
+                padding: 0
+                topPadding:0
+                bottomPadding: 0
+                text: ">"
+                onClicked: redScroll.setValue(redSlider.value+1/256)
+                toolTipText: "增大"
+            }
             Rectangle {
-                id: redSlider
-                width: height
-                height: parent.height
-                anchors.verticalCenter: parent.verticalCenter
-                border.color: "#e6e6e6"
-                border.width: 2
-                scale: 0.9
-                color: Qt.rgba(redSlider.value,greSlider.value,bluSlider.value)
-
-                property real value: x / (parent.width - width)
-            }
-
-            MouseArea {
-                anchors.fill: parent
-
-                function handleCursorPos(x) {
-                    let halfWidth = redSlider.width * 0.5;
-                    redSlider.x = Math.max(0, Math.min(width, x + halfWidth) - redSlider.width);
-                }
-                onPressed: (mouse) => {
-                    handleCursorPos(mouse.x, mouse.y);
-                }
-                onPositionChanged: (mouse) => handleCursorPos(mouse.x);
-            }
-        }
-        Rectangle {
-            id: grePicker
-            width: 100
-            height: 15
-            x:0
-            y:20
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0;  color: Qt.rgba(redSlider.value,0,bluSlider.value) }
-                GradientStop { position: 1.0;  color: Qt.rgba(redSlider.value,1,bluSlider.value) }
-            }
-
-            Rectangle {
-                id: greSlider
-                width: height
-                height: parent.height
-                anchors.verticalCenter: parent.verticalCenter
-                border.color: "#e6e6e6"
-                border.width: 2
-                scale: 0.9
-                color: Qt.rgba(redSlider.value,greSlider.value,bluSlider.value)
-
-                property real value: x / (parent.width - width)
-            }
-
-            MouseArea {
-                anchors.fill: parent
-
-                function handleCursorPos(x) {
-                    let halfWidth = greSlider.width * 0.5;
-                    greSlider.x = Math.max(0, Math.min(width, x + halfWidth) - greSlider.width);
-                }
-                onPressed: (mouse) => {
-                    handleCursorPos(mouse.x, mouse.y);
-                }
-                onPositionChanged: (mouse) => handleCursorPos(mouse.x);
-            }
-        }
-
-        Rectangle {
-            id: bluPicker
-            width: 100
-            height: 15
-            x:0
-            y:40
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0;  color: Qt.rgba(redSlider.value,greSlider.value,0) }
-                GradientStop { position: 1.0;  color: Qt.rgba(redSlider.value,greSlider.value,1) }
-            }
-
-            Rectangle {
-                id: bluSlider
-                width: height
-                height: parent.height
-                anchors.verticalCenter: parent.verticalCenter
-                border.color: "#e6e6e6"
-                border.width: 2
-                scale: 0.9
-                color: Qt.rgba(redSlider.value,greSlider.value,bluSlider.value)
-
-                property real value: x / (parent.width - width)
-            }
-
-            MouseArea {
-                anchors.fill: parent
-
-                function handleCursorPos(x) {
-                    let halfWidth = bluSlider.width * 0.5;
-                    bluSlider.x = Math.max(0, Math.min(width, x + halfWidth) - bluSlider.width);
-                }
-                onPressed: (mouse) => {
-                    handleCursorPos(mouse.x, mouse.y);
-                }
-                onPositionChanged: (mouse) => handleCursorPos(mouse.x);
-            }
-        }
-        Item {
-            id: alpPickerItem
-            width: 100
-            height: 15
-            x:0
-            y:60
-
-            Grid {
-                id: alphaPicker
-                anchors.fill: parent
-                rows: 4
-                columns: 29
-                clip: true
-
-                property real cellWidth: width / columns
-                property real cellHeight: height / rows
-
-                Repeater {
-                    model: parent.columns * parent.rows
-
-                    Rectangle {
-                        width: alphaPicker.cellWidth
-                        height: width
-                        color: (index % 2 == 0) ? "gray" : "transparent"
-                    }
-                }
-            }
-
-            Rectangle {
-                anchors.fill: parent
+                id: redPicker
+                width: 100
+                height: 15
+                x:10
+                y:0
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
-                    GradientStop { position: 1.0; color: "#ff000000" }
-                    GradientStop { position: 0.0; color: "#00ffffff" }
+                    GradientStop { position: 0.0;  color: Qt.rgba(0,greSlider.value,bluSlider.value) }
+                    GradientStop { position: 1.0;  color: Qt.rgba(1,greSlider.value,bluSlider.value) }
+                }
+
+                Rectangle {
+                    id: redSlider
+                    width: height
+                    height: parent.height
+                    anchors.verticalCenter: parent.verticalCenter
+                    border.color: "#e6e6e6"
+                    border.width: 2
+                    scale: 0.9
+                    color: Qt.rgba(redSlider.value,greSlider.value,bluSlider.value)
+
+                    property real value: x / (parent.width - width)
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    function handleCursorPos(x) {
+                        let halfWidth = redSlider.width * 0.5;
+                        redSlider.x = Math.max(0, Math.min(width, x + halfWidth) - redSlider.width);
+                    }
+                    onPressed: (mouse) => {
+                        handleCursorPos(mouse.x, mouse.y);
+                    }
+                    onPositionChanged: (mouse) => handleCursorPos(mouse.x);
                 }
             }
+        }
 
+
+        Item{
+            id:greScroll
+            y:20
+            function setValue(vl){
+                greSlider.x = Math.min(Math.max(0,vl*(grePicker.width-greSlider.width)),grePicker.width-greSlider.width)
+            }
+            Cbutton{
+                width: 10
+                height: 15
+                radiusBg: 0
+                padding: 0
+                topPadding:0
+                bottomPadding: 0
+                text: "<"
+                onClicked: greScroll.setValue(greSlider.value-1/256)
+                toolTipText: "减小"
+            }
+            Cbutton{
+                width: 10
+                height: 15
+                x:110
+                radiusBg: 0
+                padding: 0
+                topPadding:0
+                bottomPadding: 0
+                text: ">"
+                onClicked: greScroll.setValue(greSlider.value+1/256)
+                toolTipText: "增大"
+            }
             Rectangle {
-                id: alpSlider
-                x: parent.width - width
-                width: height
-                height: parent.height
-                anchors.verticalCenter: parent.verticalCenter
-                color: Qt.rgba(0.1, 0.1, 0.1, (value + 1.0) / 2.0)
-                border.color: "#e6e6e6"
-                border.width: 2
-                scale: 0.9
+                id: grePicker
+                width: 100
+                height: 15
+                x:10
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0;  color: Qt.rgba(redSlider.value,0,bluSlider.value) }
+                    GradientStop { position: 1.0;  color: Qt.rgba(redSlider.value,1,bluSlider.value) }
+                }
+
+                Rectangle {
+                    id: greSlider
+                    width: height
+                    height: parent.height
+                    anchors.verticalCenter: parent.verticalCenter
+                    border.color: "#e6e6e6"
+                    border.width: 2
+                    scale: 0.9
+                    color: Qt.rgba(redSlider.value,greSlider.value,bluSlider.value)
+
+                    property real value: x / (parent.width - width)
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    function handleCursorPos(x) {
+                        let halfWidth = greSlider.width * 0.5;
+                        greSlider.x = Math.max(0, Math.min(width, x + halfWidth) - greSlider.width);
+                    }
+                    onPressed: (mouse) => {
+                        handleCursorPos(mouse.x, mouse.y);
+                    }
+                    onPositionChanged: (mouse) => handleCursorPos(mouse.x);
+                }
+            }
+        }
 
 
-                property real value: x / (parent.width - width)
+
+        Item{
+            id:bluScroll
+            y:40
+            function setValue(vl){
+                bluSlider.x = Math.min(Math.max(0,vl*(bluPicker.width-bluSlider.width)),bluPicker.width-bluSlider.width)
+            }
+            Cbutton{
+                width: 10
+                height: 15
+                radiusBg: 0
+                padding: 0
+                topPadding:0
+                bottomPadding: 0
+                text: "<"
+                onClicked: bluScroll.setValue(bluSlider.value-1/256)
+                toolTipText: "减小"
+            }
+            Cbutton{
+                width: 10
+                height: 15
+                x:110
+                radiusBg: 0
+                padding: 0
+                topPadding:0
+                bottomPadding: 0
+                text: ">"
+                onClicked: bluScroll.setValue(bluSlider.value+1/256)
+                toolTipText: "增大"
+            }
+            Rectangle {
+                id: bluPicker
+                width: 100
+                height: 15
+                x:10
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0;  color: Qt.rgba(redSlider.value,greSlider.value,0) }
+                    GradientStop { position: 1.0;  color: Qt.rgba(redSlider.value,greSlider.value,1) }
+                }
+
+                Rectangle {
+                    id: bluSlider
+                    width: height
+                    height: parent.height
+                    anchors.verticalCenter: parent.verticalCenter
+                    border.color: "#e6e6e6"
+                    border.width: 2
+                    scale: 0.9
+                    color: Qt.rgba(redSlider.value,greSlider.value,bluSlider.value)
+
+                    property real value: x / (parent.width - width)
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    function handleCursorPos(x) {
+                        let halfWidth = bluSlider.width * 0.5;
+                        bluSlider.x = Math.max(0, Math.min(width, x + halfWidth) - bluSlider.width);
+                    }
+                    onPressed: (mouse) => {
+                        handleCursorPos(mouse.x, mouse.y);
+                    }
+                    onPositionChanged: (mouse) => handleCursorPos(mouse.x);
+                }
+            }
+        }
+        Item{
+            id:alpScroll
+            y:60
+            function setValue(vl){
+                alpSlider.x = Math.min(Math.max(0,vl*(alphaPicker.width-alpSlider.width)),alphaPicker.width-alpSlider.width)
+            }
+            Cbutton{
+                width: 10
+                height: 15
+                radiusBg: 0
+                padding: 0
+                topPadding:0
+                bottomPadding: 0
+                text: "<"
+                onClicked: alpScroll.setValue(alpSlider.value-1/256)
+                toolTipText: "减小"
+            }
+            Cbutton{
+                width: 10
+                height: 15
+                x:110
+                radiusBg: 0
+                padding: 0
+                topPadding:0
+                bottomPadding: 0
+                text: ">"
+                onClicked: alpScroll.setValue(alpSlider.value+1/256)
+                toolTipText: "增大"
+            }
+            Item {
+                id: alpPickerItem
+                width: 100
+                height: 15
+                x:10
+                Grid {
+                    id: alphaPicker
+                    anchors.fill: parent
+                    rows: 4
+                    columns: 29
+                    clip: true
+
+                    property real cellWidth: width / columns
+                    property real cellHeight: height / rows
+
+                    Repeater {
+                        model: parent.columns * parent.rows
+
+                        Rectangle {
+                            width: alphaPicker.cellWidth
+                            height: width
+                            color: (index % 2 == 0) ? "gray" : "transparent"
+                        }
+                    }
+                }
 
                 Rectangle {
                     anchors.fill: parent
-                    anchors.margins: 1
-                    color: "transparent"
-                    border.color: "white"
-                    border.width: 1
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-
-                function handleCursorPos(x) {
-                    let halfWidth = alpSlider.width * 0.5;
-                    alpSlider.x = Math.max(0, Math.min(width, x + halfWidth) - alpSlider.width);
-                }
-                onPressed: (mouse) => {
-                    handleCursorPos(mouse.x, mouse.y);
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 1.0; color: "#ff000000" }
+                        GradientStop { position: 0.0; color: "#00ffffff" }
+                    }
                 }
 
-                onPositionChanged: (mouse) => handleCursorPos(mouse.x);
+                Rectangle {
+                    id: alpSlider
+                    x: parent.width - width
+                    width: height
+                    height: parent.height
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: Qt.rgba(0.1, 0.1, 0.1, (value + 1.0) / 2.0)
+                    border.color: "#e6e6e6"
+                    border.width: 2
+                    scale: 0.9
+
+
+                    property real value: x / (parent.width - width)
+
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: 1
+                        color: "transparent"
+                        border.color: "white"
+                        border.width: 1
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    function handleCursorPos(x) {
+                        let halfWidth = alpSlider.width * 0.5;
+                        alpSlider.x = Math.max(0, Math.min(width, x + halfWidth) - alpSlider.width);
+                    }
+                    onPressed: (mouse) => {
+                                   handleCursorPos(mouse.x, mouse.y);
+                               }
+
+                    onPositionChanged: (mouse) => handleCursorPos(mouse.x);
+                }
             }
         }
     }
+
 }

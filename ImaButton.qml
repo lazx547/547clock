@@ -13,11 +13,11 @@ Button {
     property bool danger:false
     property string toolTipText
 
-    width: implicitContentWidth + leftPadding + rightPadding
-    height: implicitContentHeight + topPadding + bottomPadding
-    padding: 2
-    topPadding: 1
-    bottomPadding: 1
+    width:20
+    height:20
+    padding: 0
+    topPadding:0
+    bottomPadding: 0
     contentItem: Rectangle{
         scale: 0.5
         Image {
@@ -55,6 +55,7 @@ Button {
     Accessible.description: contentDescription
     Accessible.onPressAction: control.clicked();
     ToolTip{
+        id:tt
         background: Rectangle{
             color: "white"
             anchors.fill: parent
@@ -62,7 +63,6 @@ Button {
         }
         delay: 1000
         timeout: 10000
-        visible: hovered
         contentItem: Text{
             text: toolTipText
             font.pixelSize: 12
