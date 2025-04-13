@@ -39,12 +39,21 @@ Window{
                     if(f2){//
                         f2=false
                         file.read_()
+                        window.x=(sys_width-window.width)/2
+                        window.y=(sys_height-window.height)/2
                     }
-                    window.x=(sys_width-window.width)/2
-                    window.y=(sys_height-window.height)/2
                 }
             }
         }
+    }
+
+    Rectangle{
+        anchors.fill: parent
+        border.width: border_width.value*window.height/2
+        radius:border_radiu.value*window.height/2
+        border.color:Qt.rgba(color_border.r,color_border.g,color_border.b,color_border.a)
+        color:Qt.rgba(color_back.r,color_back.g,color_back.b,color_back.a)
+
     }
 
     Rectangle{
@@ -52,11 +61,9 @@ Window{
         transformOrigin: Item.TopLeft
         width:window_width.value*240+40
         height:window_height.value*100+10
-        border.width: border_width.value*win.height/2
-        border.color:Qt.rgba(color_border.r,color_border.g,color_border.b,color_border.a)
-        color:Qt.rgba(color_back.r,color_back.g,color_back.b,color_back.a)
+        color: "#00000000"
         scale:window_scale.value*80.9+0.01
-        radius:border_radiu.value*win.height/2
+
         Text{
             id:time_text
             anchors.centerIn:  parent
@@ -95,7 +102,7 @@ Window{
                             {
                                 if(win.scale>0.2)  win.scale-=0.1
                             }
-                            window_scale.setValue((win.scale-0.01)/80.9)
+                            window_scale.setValue((win.scale-0.01)/20.9)
                         }
                     }
         }
@@ -209,7 +216,7 @@ Window{
         height:334
         color:"transparent"
         onActiveFocusItemChanged: {//失去焦点时隐藏
-            if(!activeFocusItem && !color_text.active && !color_border.active && !color_back.active)
+            if(!activeFocusItem && !color_text.active && !color_border.active && !color_back.active && !saves_window.active)
                 visible=false
 
         }
@@ -219,8 +226,6 @@ Window{
             height:menu.height
             border.width: 2
             border.color: "#80808080"
-            transformOrigin: Item.TopLeft
-
         }
         Item{
             id:menuItems
@@ -240,11 +245,11 @@ Window{
                     id:window_scale
                     y:20
                     text:"缩放"
-                    maxValue: 6100
+                    maxValue: 2100
                     minValue: 10
-                    step:0.00016
-                    Component.onCompleted: setValue(0.0164)
-                    onValueChanged: win.scale=value*80.9+0.01
+                    step:0.00047
+                    Component.onCompleted: setValue(0.0476)
+                    onValueChanged: win.scale=value*20.9+0.01
                 }
                 CscrollBar{
                     id:window_width
@@ -259,7 +264,7 @@ Window{
                 CscrollBar{
                     id:window_height
                     y:60
-                    text:"宽度"
+                    text:"高度"
                     maxValue: 110
                     minValue: 10
                     reset:0.3
@@ -736,66 +741,426 @@ Window{
                     toolTipText:"清除数据"
                     radiusBg: 0
                 }
-                ImaButton{
-                    img: "./images/about.png"
-                    width:25
-                    height:25
+                Cbutton{
+                    id:saves_button
                     x:175
+                    width: 25
+                    height: 25
+                    text:">"
                     onClicked: {
-                        about.visible=true
-                        menu.visible=false
+                        if(text===">")
+                        {
+                            saves_window.x=menu.x+menu.width
+                            saves_window.y=menu.y
+                            if(saves_window.x+saves_window.width>sys_width) saves_window.x-=menu.width+saves_window.width
+                            saves_window.visible=true
+                            text="<"
+                        }
+                        else
+                            text=">"
                     }
-                    toolTipText:"关于"
+                    toolTipText: "展开保存窗口"
                     radiusBg: 0
-                    Window{
-                        id:about
-                        width: 300
-                        height: 130
-                        minimumHeight: height
-                        maximumHeight: height
-                        minimumWidth: width
-                        maximumWidth: width
-                        Image {
-                            x:20
-                            y:10
-                            width: 70
-                            height: 70
-                            source: "./images/Qt.png"
+
+                    Window {
+                        id: saves_window
+                        width: 164
+                        height: 304
+                        flags: Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+                        color: "#11111100"
+                        onActiveFocusItemChanged: {//失去焦点时隐藏
+                            if(!activeFocusItem)
+                            {
+                                visible=false
+                                saves_button.text=">"
+                            }
                         }
-                        Text{
-                            x:90
-                            y:25
-                            font.pixelSize: 20
-                            text:"Made with Qt6 (qml)"
+                        function setc(sr1,sr2,sr3,ss)
+                        {
+                            file.source=ss
+                            var s=file.read(),r_,g_,b_,a_
+                            r_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            g_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            b_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            a_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            sr1.color=Qt.rgba(r_,g_,b_,a_)                                    //文字颜色
+                            r_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            g_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            b_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            a_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            sr2.color=Qt.rgba(r_,g_,b_,a_)                                    //边框颜色
+                            r_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            g_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            b_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            a_=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            sr3.color=Qt.rgba(r_,g_,b_,a_)
                         }
-                        Text {
-                            x:90
-                            y:45
-                            text: "(Desktop Qt 6.8.3 MinGW 64-bit)"
+
+                        Rectangle{
+                            width: 164
+                            height:304
+                            border.width: 2
+                            border.color: "#80808080"
                         }
-                        Cbutton{
-                            text:"源代码"
-                            font.pixelSize: 16
-                            width: 80
-                            x:30
-                            y:80
-                            height: 20
-                            onClicked: Qt.openUrlExternally("https://github.com/lazx547/547clock")
-                            toolTipText: "打开github"
-                        }
-                        Cbutton{
-                            text:"547官网"
-                            font.pixelSize: 16
-                            width: 100
-                            x:170
-                            y:80
-                            height: 20
-                            onClicked: Qt.openUrlExternally("https://lazx547.github.io")
-                            toolTipText: "打开547官网"
+                        Item{
+                            x:2
+                            y:2
+                            Rectangle{
+                                border.width: 2
+                                border.color: "#80808080"
+                                width: 160
+                                height: 50
+                                Component.onCompleted: {
+                                    saves_window.setc(sr01,sr02,sr03,"./file/saves/1.txt")
+                                }
+                                Text{
+                                    x:70
+                                    y:5
+                                    text:"1"
+                                }
+                                Item{
+                                    x:5
+                                    y:5
+                                    width: 51
+                                    height: 40
+                                    Rectangle{
+                                        id:sr01
+                                        width: 17
+                                        height: 40
+                                    }
+                                    Rectangle{
+                                        id:sr02
+                                        width: 17
+                                        height: 40
+                                        x:17
+                                    }
+                                    Rectangle{
+                                        id:sr03
+                                        width: 17
+                                        height: 40
+                                        x:34
+                                    }
+                                }
+                                Cbutton{
+                                    x:60
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "加载"
+                                    onClicked: file.read2("./file/saves/1.txt")
+                                }
+                                Cbutton{
+                                    x:105
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "保存"
+                                    onClicked: {
+                                        file.save2("./file/saves/1.txt")
+                                        saves_window.setc(sr01,sr02,sr03,"./file/saves/1.txt")
+                                    }
+                                }
+                            }
+                            Rectangle{
+                                border.width: 2
+                                border.color: "#80808080"
+                                width: 160
+                                height: 50
+                                y:50
+                                Component.onCompleted: {
+                                    saves_window.setc(sr11,sr12,sr13,"./file/saves/2.txt")
+                                }
+                                Text{
+                                    x:70
+                                    y:5
+                                    text:"2"
+                                }
+                                Item{
+                                    x:5
+                                    y:5
+                                    width: 51
+                                    height: 40
+                                    Rectangle{
+                                        id:sr11
+                                        width: 17
+                                        height: 40
+                                    }
+                                    Rectangle{
+                                        id:sr12
+                                        width: 17
+                                        height: 40
+                                        x:17
+                                    }
+                                    Rectangle{
+                                        id:sr13
+                                        width: 17
+                                        height: 40
+                                        x:34
+                                    }
+                                }
+                                Cbutton{
+                                    x:60
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "加载"
+                                    onClicked: file.read2("./file/saves/2.txt")
+                                }
+                                Cbutton{
+                                    x:105
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "保存"
+                                    onClicked: {
+                                        file.save2("./file/saves/2.txt")
+                                        saves_window.setc(sr11,sr12,sr13,"./file/saves/2.txt")
+                                    }
+                                }
+                            }
+                            Rectangle{
+                                border.width: 2
+                                border.color: "#80808080"
+                                width: 160
+                                y:100
+                                height: 50
+                                Component.onCompleted: {
+                                    saves_window.setc(sr21,sr22,sr23,"./file/saves/3.txt")
+                                }
+                                Text{
+                                    x:70
+                                    y:5
+                                    text:"3"
+                                }
+                                Item{
+                                    x:5
+                                    y:5
+                                    width: 51
+                                    height: 40
+                                    Rectangle{
+                                        id:sr21
+                                        width: 17
+                                        height: 40
+                                    }
+                                    Rectangle{
+                                        id:sr22
+                                        width: 17
+                                        height: 40
+                                        x:17
+                                    }
+                                    Rectangle{
+                                        id:sr23
+                                        width: 17
+                                        height: 40
+                                        x:34
+                                    }
+                                }
+                                Cbutton{
+                                    x:60
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "加载"
+                                    onClicked: file.read2("./file/saves/3.txt")
+                                }
+                                Cbutton{
+                                    x:105
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "保存"
+                                    onClicked: {
+                                        file.save2("./file/saves/3.txt")
+                                        saves_window.setc(sr21,sr22,sr23,"./file/saves/3.txt")
+                                    }
+                                }
+                            }
+                            Rectangle{
+                                border.width: 2
+                                border.color: "#80808080"
+                                width: 160
+                                y:150
+                                height: 50
+                                Component.onCompleted: {
+                                    saves_window.setc(sr31,sr32,sr33,"./file/saves/4.txt")
+                                }
+                                Text{
+                                    x:70
+                                    y:5
+                                    text:"4"
+                                }
+                                Item{
+                                    x:5
+                                    y:5
+                                    width: 51
+                                    height: 40
+                                    Rectangle{
+                                        id:sr31
+                                        width: 17
+                                        height: 40
+                                    }
+                                    Rectangle{
+                                        id:sr32
+                                        width: 17
+                                        height: 40
+                                        x:17
+                                    }
+                                    Rectangle{
+                                        id:sr33
+                                        width: 17
+                                        height: 40
+                                        x:34
+                                    }
+                                }
+                                Cbutton{
+                                    x:60
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "加载"
+                                    onClicked: file.read2("./file/saves/4.txt")
+                                }
+                                Cbutton{
+                                    x:105
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "保存"
+                                    onClicked: {
+                                        file.save2("./file/saves/4.txt")
+                                        saves_window.setc(sr31,sr32,sr33,"./file/saves/4.txt")
+                                    }
+                                }
+                            }
+                            Rectangle{
+                                border.width: 2
+                                border.color: "#80808080"
+                                width: 160
+                                y:200
+                                height: 50
+                                Component.onCompleted: {
+                                    saves_window.setc(sr41,sr42,sr43,"./file/saves/5.txt")
+                                }
+                                Text{
+                                    x:70
+                                    y:5
+                                    text:"5"
+                                }
+                                Item{
+                                    x:5
+                                    y:5
+                                    width: 51
+                                    height: 40
+                                    Rectangle{
+                                        id:sr41
+                                        width: 17
+                                        height: 40
+                                    }
+                                    Rectangle{
+                                        id:sr42
+                                        width: 17
+                                        height: 40
+                                        x:17
+                                    }
+                                    Rectangle{
+                                        id:sr43
+                                        width: 17
+                                        height: 40
+                                        x:34
+                                    }
+                                }
+                                Cbutton{
+                                    x:60
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "加载"
+                                    onClicked: file.read2("./file/saves/5.txt")
+                                }
+                                Cbutton{
+                                    x:105
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "保存"
+                                    onClicked: {
+                                        file.save2("./file/saves/5.txt")
+                                        saves_window.setc(sr41,sr42,sr43,"./file/saves/5.txt")
+                                    }
+                                }
+                            }
+                            Rectangle{
+                                border.width: 2
+                                border.color: "#80808080"
+                                width: 160
+                                y:250
+                                height: 50
+                                Component.onCompleted: {
+                                    saves_window.setc(sr51,sr52,sr53,"./file/saves/6.txt")
+                                }
+                                Text{
+                                    x:70
+                                    y:5
+                                    text:"6"
+                                }
+                                Item{
+                                    x:5
+                                    y:5
+                                    width: 51
+                                    height: 40
+                                    Rectangle{
+                                        id:sr51
+                                        width: 17
+                                        height: 40
+                                    }
+                                    Rectangle{
+                                        id:sr52
+                                        width: 17
+                                        height: 40
+                                        x:17
+                                    }
+                                    Rectangle{
+                                        id:sr53
+                                        width: 17
+                                        height: 40
+                                        x:34
+                                    }
+                                }
+                                Cbutton{
+                                    x:60
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "加载"
+                                    onClicked: file.read2("./file/saves/6.txt")
+                                }
+                                Cbutton{
+                                    x:105
+                                    width: 45
+                                    height: 20
+                                    y:25
+                                    text: "保存"
+                                    onClicked: {
+                                        file.save2("./file/saves/5.txt")
+                                        saves_window.setc(sr51,sr52,sr53,"./file/saves/6.txt")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-
                 Item{
                     y:25
                     ImaButton{
@@ -820,18 +1185,79 @@ Window{
                         toolTipText: "保存"
                         radiusBg: 0
                     }
-                    ImaButton{//隐藏按钮
-                        width: 25
-                        height: 25
-                        img: "./images/hide.png"
+                    ImaButton{
+                        img: "./images/about.png"
+                        width:25
+                        height:25
                         x:50
                         onClicked: {
-                            window.visible=false
+                            about.visible=true
                             menu.visible=false
                         }
-                        toolTipText: "隐藏窗口"
+                        toolTipText:"关于"
                         radiusBg: 0
+                        Window{
+                            id:about
+                            width: 300
+                            height: 230
+                            minimumHeight: height
+                            maximumHeight: height
+                            minimumWidth: width
+                            maximumWidth: width
+                            Image {
+                                x:20
+                                y:10
+                                width: 70
+                                height: 70
+                                source: "./images/sys_Tray.png"
+                            }
+                            Text{
+                                x:90
+                                y:35
+                                font.pixelSize: 20
+                                text:"547clock v0.11"
+                            }
+                            Image {
+                                x:20
+                                y:90
+                                width: 70
+                                height: 70
+                                source: "./images/Qt.png"
+                            }
+                            Text{
+                                x:90
+                                y:105
+                                font.pixelSize: 20
+                                text:"Made with Qt6 (qml)"
+                            }
+                            Text {
+                                x:90
+                                y:125
+                                text: "(Desktop Qt 6.8.3 MinGW 64-bit)"
+                            }
+                            Cbutton{
+                                text:"源代码"
+                                font.pixelSize: 16
+                                width: 80
+                                x:30
+                                y:170
+                                height: 20
+                                onClicked: Qt.openUrlExternally("https://github.com/lazx547/547clock")
+                                toolTipText: "打开github"
+                            }
+                            Cbutton{
+                                text:"547官网"
+                                font.pixelSize: 16
+                                width: 100
+                                x:170
+                                y:170
+                                height: 20
+                                onClicked: Qt.openUrlExternally("https://lazx547.github.io")
+                                toolTipText: "打开547官网"
+                            }
+                        }
                     }
+
                     ImaButton{//不保存并退出按钮
                         width: 25
                         height: 25
