@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QDir>
+#include <QProcess>
 
 class GFile : public QObject
 {
@@ -18,14 +19,17 @@ public:
     Q_INVOKABLE QString getUser();
     Q_INVOKABLE void setSource(const QString& source) { m_source = source; };
     Q_INVOKABLE QString source() { return m_source; }
+    Q_INVOKABLE void del(){QFile::remove(m_source);}
     Q_INVOKABLE qreal getSysScale(){return 0;}
+    Q_INVOKABLE void start(){program.start(m_source);}
+    Q_INVOKABLE void restart();
     QString m_source;
 
 
 signals:
     void sourceChanged(const QString& source);
-
-
+private:
+    QProcess program;
 };
 
 #endif

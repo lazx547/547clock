@@ -53,3 +53,10 @@ QString GFile::getUser()
 {
     return QDir::home().dirName();
 }
+
+void GFile::restart()
+{
+    program.start("./start.bat");
+    program.waitForFinished();
+    exit(0);
+}
