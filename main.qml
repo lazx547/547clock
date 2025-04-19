@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Window
 import Qt.labs.platform
 import Qt5Compat.GraphicalEffects
+import QtQuick.Controls.Basic
 import GFile 1.2
 
 Window{
@@ -17,9 +18,9 @@ Window{
     readonly property real sys_width: window.screen.width
     readonly property real sys_height: window.screen.height
 
-    Timer{
+    Timer{//初始化计时器
         id:timer_set
-        interval: 1
+        interval: 10
         property bool f:true//是否是第一次循环
         property bool f2:true//是否读取保存的状态
         running: true
@@ -39,6 +40,7 @@ Window{
                     if(f2){//
                         f2=false
                         file.read_()
+                        mstg_window.read()
                         window.x=(sys_width-window.width)/2
                         window.y=(sys_height-window.height)/2
                     }
@@ -46,8 +48,7 @@ Window{
             }
         }
     }
-
-    Rectangle{
+    Rectangle{//背景
         anchors.fill: parent
         border.width: border_width.value*window.height/2
         radius:border_radiu.value*window.height/2
@@ -55,8 +56,7 @@ Window{
         color:Qt.rgba(color_back.r,color_back.g,color_back.b,color_back.a)
 
     }
-
-    Rectangle{
+    Rectangle{//文字
         id:win
         transformOrigin: Item.TopLeft
         width:window_width.value*240+40
@@ -73,7 +73,47 @@ Window{
             Timer{
                 id:refresh
                 interval: 10
-                onTriggered: time_text.text=Qt.formatDateTime(new Date(), time_text.type);
+                onTriggered:
+                {
+                    if(h_type.checked) time_text.text=Qt.formatDateTime(new Date(), h_type_t.text)
+                    else{
+                        var h,m,s;
+                        h=Number(Qt.formatDateTime(new Date(),"hh"))
+                        m=Number(Qt.formatDateTime(new Date(),"mm"))
+                        s=Number(Qt.formatDateTime(new Date(),"ss"))+delT.delT
+                        if(delT.delT<0)
+                        {
+                            m--
+                            s+=60
+                        }
+                        if(s>=60)
+                        {
+                            m+=(s-s%60)/60
+                            s%=60
+                        }
+                        if(s<10)s="0"+s
+                        if(m>=60)
+                        {
+                            h+=(h-h%60)/60
+                            m%=60
+                        }
+                        else if(m<0)
+                        {
+                            h-=1
+                            m+=60
+                        }
+
+                        if(m<10)m="0"+m
+                        if(h>=24)h=0
+                        else if(h<0)h+=24
+                        time_text.text=show_type.checked? h+":"+m+":"+s : h+":"+m
+                       }
+                    if(fresh_top.checked)
+                    {
+                        window.flags=Qt.FramelessWindowHint
+                        window.flags=Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+                    }
+                }
                 running: false
                 repeat: true
             }
@@ -107,10 +147,25 @@ Window{
                     }
         }
     }
+    SystemTrayIcon {//托盘图标
+        visible: true
+        icon.source: "qrc:/547clock.png"
+        id:tray
+        onActivated:(reason)=>{
+            if(reason==SystemTrayIcon.Trigger)
+            {
+                window.flags=Qt.FramelessWindowHint
+                window.flags=Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+            }
+            else if(reason==SystemTrayIcon.DoubleClick)
+            {
+                window.visible=!window.visible
+            }
+        }
+    }
     GFile{//文件操作
         id:file
-        function save()//正常保存
-        {
+        function save(){//正常保存
             file.save2("./value.txt")
         }
         function save2(b){
@@ -133,7 +188,6 @@ Window{
             file.source=b
             file.write(a)
         }
-
         function read_(){//判断是否是第一次启动
             var a=0
             file.create("./")
@@ -208,32 +262,34 @@ Window{
             a=1
         }
     }
-    Window{
+    Window{//右键菜单窗口
         id:menu
         visible:false
         flags:Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
         width: 204
-        height:334
+        height:359
         color:"transparent"
         onActiveFocusItemChanged: {//失去焦点时隐藏
-            if(!activeFocusItem && !color_text.active && !color_border.active && !color_back.active && !saves_window.active)
+            if(!activeFocusItem && !color_text.active && !color_border.active && !color_back.active && !saves_window.active && !mstg_window.active)
                 visible=false
 
         }
-        Rectangle{
+        Rectangle{//右键菜单窗口背景
             id:menu_back
             width: menu.width
             height:menu.height
             border.width: 2
             border.color: "#80808080"
+            transformOrigin: Item.TopLeft
+
         }
-        Item{
+        Item{//右键菜单
             id:menuItems
             x:menu_back.border.width
             y:menu_back.border.width
             width: menu.width-menu_back.border.width
             height:menu.height-menu_back.border.width
-            Item{
+            Item{//窗口
                 id:window_set
                 CscrollBar{
                     id:window_opa
@@ -248,7 +304,7 @@ Window{
                     maxValue: 2100
                     minValue: 10
                     step:0.00047
-                    Component.onCompleted: setValue(0.0476)
+                    Component.onCompleted: setValue(0.047)
                     onValueChanged: win.scale=value*20.9+0.01
                 }
                 CscrollBar{
@@ -271,7 +327,7 @@ Window{
                     Component.onCompleted: setValue(reset)
                 }
             }
-            Item{
+            Item{//文字
                 id:text_set
                 y:85
                 Text{
@@ -281,7 +337,7 @@ Window{
                 Item{
                     y:3
                     x:menuItems.width-122
-                    ImaButton{
+                    ImaButton{//加粗
                         id:text_bord
                         radiusBg: 0
                         width: 20
@@ -350,7 +406,7 @@ Window{
                         toolTipText: "文字右移一个单位"
                         radiusBg: 0
                     }
-                    ImaButton{
+                    ImaButton{//重置
                         width: 20
                         height: 20
                         x:100
@@ -364,7 +420,7 @@ Window{
                     }
 
                 }
-                CscrollBar{
+                CscrollBar{//字体大小
                     y:25
                     id:text_size
                     minValue: 5
@@ -374,14 +430,14 @@ Window{
                     text:"大小"
                 }
             }
-            Item{
+            Item{//边框
                 id:border_set
                 y:130
                 Text{
                     text:"边框"
                     font.pixelSize:18
                 }
-                CscrollBar{
+                CscrollBar{//边框大小
                     y:25
                     id:border_width
                     minValue:0
@@ -391,7 +447,7 @@ Window{
                     Component.onCompleted: setValue(reset)
                     text:"大小"
                 }
-                CscrollBar{
+                CscrollBar{//圆角大小
                     y:45
                     id:border_radiu
                     minValue:0
@@ -402,14 +458,14 @@ Window{
                     text:"圆角"
                 }
             }
-            Item{
+            Item{//颜色
                 id:color_set
                 y:195
                 Text{
                     text:"颜色"
                     font.pixelSize:18
                 }
-                Item{
+                Item{//文字
                     y:20
                     Text{
                         text:"文字:"
@@ -473,7 +529,7 @@ Window{
                         }
                     }
                 }
-                Item{
+                Item{//边框
                     y:40
                     Text{
                         text:"边框:"
@@ -537,7 +593,7 @@ Window{
                         }
                     }
                 }
-                Item{
+                Item{//背景
                     y:60
                     Text{
                         text:"背景:"
@@ -579,7 +635,7 @@ Window{
                             {
                                 color_back.x=menu.x+menu.width
                                 color_back.y=menu.y+color_set.y+60
-                                if(color_border.x+color_border.width>sys_width) color_back.x-=menu.width+color_back.width
+                                if(color_back.x+color_back.width>sys_width) color_back.x-=menu.width+color_back.width
                                 //hidewindows()
                                 color_back.visible=true
                             }
@@ -602,11 +658,171 @@ Window{
                     }
                 }
             }
+            Item{//高级设置
+                y:menuItems.height-75
+                Text{
+                    text:"设置"
+                    font.pixelSize:18
+                }
+                Cbutton{
+                    text:"全屏模式"
+                    radiusBg: 0
+                    width:70
+                    height: 20
+                    x:50
+                    y:2
+                    font.pixelSize: 13
+                    onClicked: {
+                        file.source="./run.ini"
+                        file.write("fullscreen")
+                        file.restart()
+                    }
+                }
+                Cbutton{
+                    id:mstg_button
+                    x:135
+                    y:-1
+                    width: 65
+                    height: 24
+                    text:"更多  >"
+                    font.pixelSize: 15
+                    onClicked: {
+                        if(text==="更多  >")
+                        {
+                            mstg_window.x=menu.x+menu.width
+                            mstg_window.y=menu.y
+                            if(mstg_window.x+mstg_window.width>sys_width) mstg_window.x-=menu.width+mstg_window.width
+                            mstg_window.visible=true
+                            text="更多  <"
+                        }
+                        else
+                            text="更多  >"
+                    }
+                    toolTipText: "展开高级设置窗口"
+                    radiusBg: 0
 
-            Item{
+                    Window {
+                        id: mstg_window
+                        width: 204
+                        height: menu.height
+                        flags: Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+                        color: "#11111100"
+                        onActiveFocusItemChanged: {//失去焦点时隐藏
+                            if(!activeFocusItem)
+                            {
+                                visible=false
+                                mstg_button.text="更多  >"
+                            }
+                        }
+                        function save(){
+                            file.source="./mstg.ini"
+                            file.write(delT.value+","+h_type_t.text+","+h_type.checked+",")
+                        }
+                        function read(){
+                            file.source="./mstg.ini"
+                            var s=file.read()
+                            delT.setValue(s.slice(0,s.indexOf(",")))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            h_type_t.text=s.slice(0,s.indexOf(","))
+                            s=s.slice(s.indexOf(",")+1,s.length)
+                            h_type.checked=s.slice(0,s.indexOf(","))=="true" ? true : false
+                        }
+
+                        Rectangle{
+                            anchors.fill: parent
+                            border.width: 2
+                            border.color: "#80808080"
+                        }
+                        Item{
+                            x:2
+                            y:2
+                            CscrollBar{
+                                id:delT
+                                text: "时差"
+                                minValue: -60
+                                maxValue: 60
+                                Component.onCompleted: setValue(0.5)
+                                reset:0.5
+                                property int delT:value*120-60
+                            }
+                            Rectangle{
+                                y:20
+                                Text{
+                                    x:2
+                                    text:"显示模式:"
+                                    font.pixelSize: 15
+                                }
+                                CheckBox{
+                                    id:h_type
+                                    x:50
+                                    y:-10
+                                    scale: 0.75
+                                    font.pixelSize: 15
+                                    text:"启用(与时差不兼容)"
+                                }
+                                TextArea{
+                                    id:h_type_t
+                                    x:2
+                                    y:20
+                                    width: 196
+                                    height: 20
+                                    text:"hh:mm:ss"
+                                    color: "black"
+                                    padding:0
+                                    font.pixelSize: 15
+                                    background:Rectangle{
+                                        anchors.fill: parent
+                                        border.width: 1
+                                        border.color: "#80808080"
+                                    }
+                                }
+                                ScrollView{
+                                    x:2
+                                    y:42
+                                    width: 196
+                                    height: 177
+                                    TextArea{
+                                        padding:0
+                                        font.pixelSize:12
+                                        property string tex:"d 日 (1-31)       dd日 (01-31)\nddd 星期 (Mon-Sun)\ndddd 星期 (Monday-Sunday)\nM 月 (1-12)      MM 月 (01-12)\nMMM 月 (Jan-Dec)\nMMMM 月 (January-December)\nyy 年 (00-99)    yyyy 年\nh 小时 (0-23)    hh 小时 (00-23)\nm 分钟 (0-59)   mm 分钟 (00-59)\ns 秒 (0-59)        ss 秒 (00-59)\nz 毫秒 (0-999)   zzz 毫秒(000-999)"
+                                        text:tex
+                                        background:Rectangle{
+                                            anchors.fill: parent
+                                            border.width: 1
+                                            border.color: "#80808080"
+                                        }
+                                        onTextChanged: text=tex
+                                    }
+                                }
+                            }
+                            Cbutton{
+                                width: 190
+                                height: 20
+                                y:240
+                                font.pixelSize: 13
+                                text:"显示任务栏窗口(不支持win11)"
+                                onClicked: {
+                                    window.flags=Qt.Window
+                                    window.flags=window_top.checked? Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint|Qt.Window : Qt.FramelessWindowHint|Qt.Window
+                                }
+                            }
+                            CheckBox{
+                                id:fresh_top
+                                x:-3
+                                transformOrigin: Item.TopLeft
+                                y:260
+                                scale: 0.75
+                                font.pixelSize: 15
+                                text:"刷新最上层(与其他窗口设置不兼容)"
+                            }
+                        }
+                    }
+                }
+            }
+            Item{//设置
                 x:0
                 y:menuItems.height-52
-                ImaButton{
+                ImaButton{//置顶
                     id:window_top
                     radiusBg: 0
                     width: 25
@@ -630,7 +846,7 @@ Window{
                     onClicked: checked=!checked
                     toolTipText: "置顶"
                 }
-                ImaButton{
+                ImaButton{//暂停
                     id:time_pauce
                     radiusBg: 0
                     x:25
@@ -648,7 +864,7 @@ Window{
                     onClicked: checked=!checked
                     toolTipText: "允许暂停"
                 }
-                ImaButton{
+                ImaButton{//锁定
                     id:window_lock
                     radiusBg: 0
                     x:50
@@ -666,7 +882,7 @@ Window{
                     onClicked: checked=!checked
                     toolTipText: "锁定"
                 }
-                ImaButton{
+                ImaButton{//显示秒
                     id:show_type
                     radiusBg: 0
                     x:75
@@ -690,7 +906,7 @@ Window{
                     onClicked: checked=!checked
                     toolTipText: "显示秒"
                 }
-                ImaButton{
+                ImaButton{//同步时间
                     radiusBg: 0
                     x:100
                     width: 25
@@ -705,7 +921,7 @@ Window{
                     }
                     toolTipText: "同步时间"
                 }
-                ImaButton{
+                ImaButton{//重载数据
                     radiusBg: 0
                     x:125
                     width: 25
@@ -741,12 +957,13 @@ Window{
                     toolTipText:"清除数据"
                     radiusBg: 0
                 }
-                Cbutton{
+                Cbutton{//存档
                     id:saves_button
                     x:175
                     width: 25
                     height: 25
                     text:">"
+                    font.pixelSize: 25
                     onClicked: {
                         if(text===">")
                         {
@@ -764,8 +981,8 @@ Window{
 
                     Window {
                         id: saves_window
-                        width: 164
-                        height: 304
+                        width: 164+saves_scoll.effectiveScrollBarWidth/2
+                        height: menu.height
                         flags: Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
                         color: "#11111100"
                         onActiveFocusItemChanged: {//失去焦点时隐藏
@@ -775,395 +992,136 @@ Window{
                                 saves_button.text=">"
                             }
                         }
-                        function setc(sr1,sr2,sr3,ss)
-                        {
-                            file.source=ss
-                            var s=file.read(),r_,g_,b_,a_
-                            r_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            g_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            b_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            a_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            sr1.color=Qt.rgba(r_,g_,b_,a_)                                    //文字颜色
-                            r_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            g_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            b_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            a_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            sr2.color=Qt.rgba(r_,g_,b_,a_)                                    //边框颜色
-                            r_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            g_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            b_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            a_=s.slice(0,s.indexOf(","))
-                            s=s.slice(s.indexOf(",")+1,s.length)
-                            sr3.color=Qt.rgba(r_,g_,b_,a_)
-                        }
-
                         Rectangle{
-                            width: 164
-                            height:304
+                            anchors.fill: parent
                             border.width: 2
                             border.color: "#80808080"
+
                         }
-                        Item{
+                        Rectangle{
                             x:2
-                            y:2
-                            Rectangle{
-                                border.width: 2
-                                border.color: "#80808080"
-                                width: 160
-                                height: 50
-                                Component.onCompleted: {
-                                    saves_window.setc(sr01,sr02,sr03,"./file/saves/1.txt")
+                            y:4
+                            TextArea{
+                                id:save_text
+                                x:2
+                                y:1
+                                width: 80
+                                height: 25
+                                color: "black"
+                                padding:2
+                                font.pixelSize: 18
+                                background:Rectangle{
+                                    anchors.fill: parent
+                                    border.width: 1
+                                    border.color: "#80808080"
                                 }
-                                Text{
-                                    x:70
-                                    y:5
-                                    text:"1"
-                                }
-                                Item{
-                                    x:5
-                                    y:5
-                                    width: 51
-                                    height: 40
-                                    Rectangle{
-                                        id:sr01
-                                        width: 17
-                                        height: 40
-                                    }
-                                    Rectangle{
-                                        id:sr02
-                                        width: 17
-                                        height: 40
-                                        x:17
-                                    }
-                                    Rectangle{
-                                        id:sr03
-                                        width: 17
-                                        height: 40
-                                        x:34
+                                onTextChanged: {
+                                    if(text.length>5)
+                                        text=text.slice(0,5)
+                                    if(text=="") save_new.enabled=false
+                                    else{
+                                        var a=false
+                                        for(var i=0;i<saves.sis.length;i++)
+                                            if(saves.sis[i].num==text)
+                                            {
+                                                save_new.enabled=false
+                                                a=true
+                                                break
+                                            }
+                                        if(!a)
+                                            save_new.enabled=true
                                     }
                                 }
-                                Cbutton{
-                                    x:60
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "加载"
-                                    onClicked: file.read2("./file/saves/1.txt")
-                                }
-                                Cbutton{
-                                    x:105
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "保存"
-                                    onClicked: {
-                                        file.save2("./file/saves/1.txt")
-                                        saves_window.setc(sr01,sr02,sr03,"./file/saves/1.txt")
-                                    }
+
+                            }
+
+                            Cbutton{
+                                x:100
+                                width: 60
+                                text:"保存"
+                                radiusBg: 0
+                                id:save_new
+                                enabled: false
+                                onClicked: {
+                                    enabled=false
+                                    file.source="./file/saves/"+save_text.text+".txt"
+                                    file.save2(file.source)
+                                    var Csaves=Qt.createComponent("./CSaveItem.qml"),im
+                                    saves.sis.push(im=Csaves.createObject(saves))
+                                    im.file=file
+                                    im.par=saves
+                                    im.n=saves.sis.length
+                                    im.num=save_text.text
+                                    im.y=(im.n-1)*50
+                                    im.parent=saves
+                                    saves.height=50*im.n
+                                    file.source="./file/saves/num.txt"
+                                    var s=saves.sis.length+","
+                                    for(var i=0;i<saves.sis.length;i++)
+                                        s+=saves.sis[i].num+","
+                                    file.write(s)
                                 }
                             }
-                            Rectangle{
-                                border.width: 2
-                                border.color: "#80808080"
+                        }
+                        ScrollView{
+                            x:2
+                            y:35
+                            width: 320+effectiveScrollBarWidth
+                            height:saves_window.height*2-82
+                            scale: 0.5
+                            transformOrigin: Item.TopLeft
+                            contentHeight: saves.height*2
+                            id:saves_scoll
+                            Item{
                                 width: 160
-                                height: 50
-                                y:50
-                                Component.onCompleted: {
-                                    saves_window.setc(sr11,sr12,sr13,"./file/saves/2.txt")
-                                }
-                                Text{
-                                    x:70
-                                    y:5
-                                    text:"2"
-                                }
-                                Item{
-                                    x:5
-                                    y:5
-                                    width: 51
-                                    height: 40
-                                    Rectangle{
-                                        id:sr11
-                                        width: 17
-                                        height: 40
+                                id:saves
+                                scale: 2
+                                transformOrigin: Item.TopLeft
+                                property var sis:[]
+                                function remove(n){
+                                    n--
+                                    sis[n].destroy()
+                                    var i,s
+                                    for(i=n;i<sis.length-1;i++)
+                                    {
+                                        sis[i]=sis[i+1]
+                                        sis[i].n-=1
+                                        sis[i].y-=50
                                     }
-                                    Rectangle{
-                                        id:sr12
-                                        width: 17
-                                        height: 40
-                                        x:17
-                                    }
-                                    Rectangle{
-                                        id:sr13
-                                        width: 17
-                                        height: 40
-                                        x:34
-                                    }
-                                }
-                                Cbutton{
-                                    x:60
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "加载"
-                                    onClicked: file.read2("./file/saves/2.txt")
-                                }
-                                Cbutton{
-                                    x:105
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "保存"
-                                    onClicked: {
-                                        file.save2("./file/saves/2.txt")
-                                        saves_window.setc(sr11,sr12,sr13,"./file/saves/2.txt")
-                                    }
+                                    sis.pop()
+                                    saves.height-=50
+                                    s=sis.length+","
+                                    for(i=0;i<sis.length;i++)
+                                        s+=sis[i].num+","
+                                    file.source="./file/saves/num.txt"
+                                    file.write(s)
                                 }
                             }
-                            Rectangle{
-                                border.width: 2
-                                border.color: "#80808080"
-                                width: 160
-                                y:100
-                                height: 50
-                                Component.onCompleted: {
-                                    saves_window.setc(sr21,sr22,sr23,"./file/saves/3.txt")
+
+                            Component.onCompleted: {
+                                file.source="./file/saves/num.txt"
+                                var s=file.read()
+                                var a=Number(s.slice(0,s.indexOf(","))),im
+                                var Csaves=Qt.createComponent("./CSaveItem.qml")
+                                for(var n=1;n<=a;n++)
+                                {
+                                    saves.sis.push(im=Csaves.createObject(saves))
+                                    im.file=file
+                                    im.par=saves
+                                    im.n=n
+                                    s=s.slice(s.indexOf(",")+1,s.length)
+                                    im.num=s.slice(0,s.indexOf(","))
+                                    im.y=(n-1)*50
+                                    im.parent=saves
                                 }
-                                Text{
-                                    x:70
-                                    y:5
-                                    text:"3"
-                                }
-                                Item{
-                                    x:5
-                                    y:5
-                                    width: 51
-                                    height: 40
-                                    Rectangle{
-                                        id:sr21
-                                        width: 17
-                                        height: 40
-                                    }
-                                    Rectangle{
-                                        id:sr22
-                                        width: 17
-                                        height: 40
-                                        x:17
-                                    }
-                                    Rectangle{
-                                        id:sr23
-                                        width: 17
-                                        height: 40
-                                        x:34
-                                    }
-                                }
-                                Cbutton{
-                                    x:60
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "加载"
-                                    onClicked: file.read2("./file/saves/3.txt")
-                                }
-                                Cbutton{
-                                    x:105
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "保存"
-                                    onClicked: {
-                                        file.save2("./file/saves/3.txt")
-                                        saves_window.setc(sr21,sr22,sr23,"./file/saves/3.txt")
-                                    }
-                                }
-                            }
-                            Rectangle{
-                                border.width: 2
-                                border.color: "#80808080"
-                                width: 160
-                                y:150
-                                height: 50
-                                Component.onCompleted: {
-                                    saves_window.setc(sr31,sr32,sr33,"./file/saves/4.txt")
-                                }
-                                Text{
-                                    x:70
-                                    y:5
-                                    text:"4"
-                                }
-                                Item{
-                                    x:5
-                                    y:5
-                                    width: 51
-                                    height: 40
-                                    Rectangle{
-                                        id:sr31
-                                        width: 17
-                                        height: 40
-                                    }
-                                    Rectangle{
-                                        id:sr32
-                                        width: 17
-                                        height: 40
-                                        x:17
-                                    }
-                                    Rectangle{
-                                        id:sr33
-                                        width: 17
-                                        height: 40
-                                        x:34
-                                    }
-                                }
-                                Cbutton{
-                                    x:60
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "加载"
-                                    onClicked: file.read2("./file/saves/4.txt")
-                                }
-                                Cbutton{
-                                    x:105
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "保存"
-                                    onClicked: {
-                                        file.save2("./file/saves/4.txt")
-                                        saves_window.setc(sr31,sr32,sr33,"./file/saves/4.txt")
-                                    }
-                                }
-                            }
-                            Rectangle{
-                                border.width: 2
-                                border.color: "#80808080"
-                                width: 160
-                                y:200
-                                height: 50
-                                Component.onCompleted: {
-                                    saves_window.setc(sr41,sr42,sr43,"./file/saves/5.txt")
-                                }
-                                Text{
-                                    x:70
-                                    y:5
-                                    text:"5"
-                                }
-                                Item{
-                                    x:5
-                                    y:5
-                                    width: 51
-                                    height: 40
-                                    Rectangle{
-                                        id:sr41
-                                        width: 17
-                                        height: 40
-                                    }
-                                    Rectangle{
-                                        id:sr42
-                                        width: 17
-                                        height: 40
-                                        x:17
-                                    }
-                                    Rectangle{
-                                        id:sr43
-                                        width: 17
-                                        height: 40
-                                        x:34
-                                    }
-                                }
-                                Cbutton{
-                                    x:60
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "加载"
-                                    onClicked: file.read2("./file/saves/5.txt")
-                                }
-                                Cbutton{
-                                    x:105
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "保存"
-                                    onClicked: {
-                                        file.save2("./file/saves/5.txt")
-                                        saves_window.setc(sr41,sr42,sr43,"./file/saves/5.txt")
-                                    }
-                                }
-                            }
-                            Rectangle{
-                                border.width: 2
-                                border.color: "#80808080"
-                                width: 160
-                                y:250
-                                height: 50
-                                Component.onCompleted: {
-                                    saves_window.setc(sr51,sr52,sr53,"./file/saves/6.txt")
-                                }
-                                Text{
-                                    x:70
-                                    y:5
-                                    text:"6"
-                                }
-                                Item{
-                                    x:5
-                                    y:5
-                                    width: 51
-                                    height: 40
-                                    Rectangle{
-                                        id:sr51
-                                        width: 17
-                                        height: 40
-                                    }
-                                    Rectangle{
-                                        id:sr52
-                                        width: 17
-                                        height: 40
-                                        x:17
-                                    }
-                                    Rectangle{
-                                        id:sr53
-                                        width: 17
-                                        height: 40
-                                        x:34
-                                    }
-                                }
-                                Cbutton{
-                                    x:60
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "加载"
-                                    onClicked: file.read2("./file/saves/6.txt")
-                                }
-                                Cbutton{
-                                    x:105
-                                    width: 45
-                                    height: 20
-                                    y:25
-                                    text: "保存"
-                                    onClicked: {
-                                        file.save2("./file/saves/5.txt")
-                                        saves_window.setc(sr51,sr52,sr53,"./file/saves/6.txt")
-                                    }
-                                }
+                                saves.height=50*a
                             }
                         }
                     }
                 }
-                Item{
+                Item{//第二行
                     y:25
-                    ImaButton{
+                    ImaButton{//退出
                         radiusBg: 0
                         width: 25
                         height: 25
@@ -1171,6 +1129,7 @@ Window{
                         danger: true
                         onClicked:
                         {
+                            mstg_window.save()
                             file.save()
                             Qt.quit()
                         }
@@ -1181,11 +1140,15 @@ Window{
                         height: 25
                         img: "./images/save.png"
                         x:25
-                        onClicked: file.save()
+                        onClicked:
+                        {
+                            mstg_window.save()
+                            file.save()
+                        }
                         toolTipText: "保存"
                         radiusBg: 0
-                    }
-                    ImaButton{
+                    } 
+                    ImaButton{//关于
                         img: "./images/about.png"
                         width:25
                         height:25
@@ -1257,7 +1220,6 @@ Window{
                             }
                         }
                     }
-
                     ImaButton{//不保存并退出按钮
                         width: 25
                         height: 25
@@ -1268,7 +1230,7 @@ Window{
                         danger:true
                         radiusBg: 0
                     }
-                    Cbutton{
+                    Cbutton{//窗口上移
                         width: 25
                         height: 25
                         x:100
@@ -1282,7 +1244,7 @@ Window{
                         toolTipText: "窗口上移一单位"
                         radiusBg: 0
                     }
-                    Cbutton{
+                    Cbutton{//窗口下移
                         width: 25
                         height: 25
                         rotation: 90
@@ -1296,7 +1258,7 @@ Window{
                         toolTipText: "窗口下移一单位"
                         radiusBg: 0
                     }
-                    Cbutton{
+                    Cbutton{//窗口左移
                         width: 25
                         height: 25
                         x:150
@@ -1309,7 +1271,7 @@ Window{
                         toolTipText: "窗口左移一单位"
                         radiusBg: 0
                     }
-                    Cbutton{
+                    Cbutton{//窗口右移
                         width: 25
                         height: 25
                         x:175
@@ -1329,7 +1291,7 @@ Window{
     DragHandler {//按下拖动以移动窗口
         grabPermissions: TapHandler.CanTakeOverFromAnything
         onActiveChanged: {
-            if (active && window_lock)
+            if (active && !window_lock.checked)
             {
                 menu.visible=false
                 window.startSystemMove()

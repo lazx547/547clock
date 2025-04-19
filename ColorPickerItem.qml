@@ -2,9 +2,9 @@ import QtQuick
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 
-Window {
+Item {
     id: root
-    width: 164
+    width: 200
     height: 79
     readonly property real r:redSlider.value
     readonly property real g:greSlider.value
@@ -16,17 +16,8 @@ Window {
         bluScroll.setValue(b_)
         alpScroll.setValue(a_)
     }
-    color: "#00000000"
-    flags: Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
-    onActiveFocusItemChanged: {//失去焦点时隐藏
-        if(!activeFocusItem)
-            visible=false
-    }
     signal accepted();
     signal rejected();
-
-
-
 
     Rectangle{
         border.width: 2
@@ -44,7 +35,7 @@ Window {
             color: "#f6f6f6"
         }
         Item{
-            x:122
+            x:162
             Item {
                 id: previewItem
                 width: 38
@@ -159,7 +150,7 @@ Window {
             Cbutton{
                 width: 10
                 height: 15
-                x:110
+                x:150
                 radiusBg: 0
                 padding: 0
                 topPadding:0
@@ -170,7 +161,7 @@ Window {
             }
             Rectangle {
                 id: redPicker
-                width: 100
+                width: 140
                 height: 15
                 x:10
                 y:0
@@ -229,7 +220,7 @@ Window {
             Cbutton{
                 width: 10
                 height: 15
-                x:110
+                x:150
                 radiusBg: 0
                 padding: 0
                 topPadding:0
@@ -240,7 +231,7 @@ Window {
             }
             Rectangle {
                 id: grePicker
-                width: 100
+                width: 140
                 height: 15
                 x:10
                 gradient: Gradient {
@@ -299,7 +290,7 @@ Window {
             Cbutton{
                 width: 10
                 height: 15
-                x:110
+                x:150
                 radiusBg: 0
                 padding: 0
                 topPadding:0
@@ -310,7 +301,7 @@ Window {
             }
             Rectangle {
                 id: bluPicker
-                width: 100
+                width: 140
                 height: 15
                 x:10
                 gradient: Gradient {
@@ -366,7 +357,7 @@ Window {
             Cbutton{
                 width: 10
                 height: 15
-                x:110
+                x:150
                 radiusBg: 0
                 padding: 0
                 topPadding:0
@@ -377,7 +368,7 @@ Window {
             }
             Item {
                 id: alpPickerItem
-                width: 100
+                width: 140
                 height: 15
                 x:10
                 Grid {
