@@ -132,6 +132,7 @@ Window{
                         if(m<10)m="0"+m
                         if(h>=24)h=0
                         else if(h<0)h+=24
+                        if(h<10)h="0"+h
                         time_text.text=show_type.checked? h+":"+m+":"+s : h+":"+m
                        }
                     if(fresh_top.checked)
