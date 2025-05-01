@@ -1,57 +1,70 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Basic
 
-Item {
+Button {
     id: control
-    property int radiusBg: 6
-    property color colorText:"#000000"
-    property color colorBg: checked? "#2955ff":"white";
-    property color colorBorder:control.down ? "#000" : control.hovered ? "#69b1ff" : "#80808080";
+    property int radiusBg: 0
+    property color colorText: {
+        if (enabled)
+            return control.down ? "#1677ff" : control.hovered ? "#4096ff" : "#000000"
+        else return Qt.rgba(0,0,0,0.45);
+    }
+    property color colorBg: {
+        if (enabled)
+                return control.checked? (control.down ? "#1677ff" : control.hovered ? "#4096ff" : "#80808080"):(control.down ? "#1677ff" : control.hovered ? "#604096ff" : "#00ffffff")
+        else return Qt.rgba(0,0,0,0);
+    }
+    property color colorBorder: {
+        if (enabled)
+                return control.down ? "#1677ff" : control.hovered ? "#69b1ff" : "#80808080";
+        else return "#4096ff";
+    }
     property string contentDescription: text
-    property bool checked:false
-    property string text
-    onTextChanged: text_.text=text
-    onWidthChanged: text_.width=control.width-control.height-5
-    onHeightChanged: {
-        text_.width=control.width-control.height-5
-        text_.height==control.height
-        border_.width=border_.height=height-2
+    property string toolTipText
+
+    checkable: true
+    width: implicitContentWidth + leftPadding + rightPadding+height
+    height: implicitContentHeight + topPadding + bottomPadding
+    padding: 2
+    font {
+        family: "微软雅黑"
+        pixelSize: 16
+    }
+    contentItem:Text{
+        text: control.text
+        font: control.font
+        color: control.colorText
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        anchors.centerIn: parent
+        anchors.horizontalCenterOffset: control.height/2
+        anchors.verticalCenterOffset: 1
+        elide: Text.ElideRight
     }
 
-    Text {
-        width: control.width-control.height-5
-        height: control.height
-        x:border_.width+5
-        id: text_
-        text: text
-        font.pixelSize: 16
-        color: "#000000"
-    }
-    Rectangle{
-        x:1
-        y:1
-        id:border_
-        width: control.height-2
-        height: control.height-2
-        border.color: colorBorder
-        border.width: 1
-        radius: 6
-        color: colorBg
-    }
-    MouseArea{
-        id:mouse
-        property bool hovered:false
-        anchors.fill: parent
-        hoverEnabled: true
-        onClicked: checked=!checked
-        onEntered: {
-            border_.border.color="#1677ff"
-            text_.color="#1677ff"
-        }
-        onExited: {
-            border_.border.color="#000"
-            text_.color="#000000"
-        }
 
+    background: Item {
+        Rectangle {
+            id: __bg
+            x:control.padding
+            y:control.padding
+            width: control.height
+            height: control.height
+            Rectangle{
+                anchors.centerIn: __bg
+                color: control.colorBg
+                radius:control.radiusBg
+                width: control.height*0.7
+                height: width
+            }
+            radius:control.radiusBg
+            border.width: 1
+            border.color: control.enabled ? control.colorBorder : "#80808080"
+        }
     }
+    Accessible.role: Accessible.Button
+    Accessible.name: control.text
+    Accessible.description: contentDescription
+    Accessible.onPressAction: control.clicked();
 }

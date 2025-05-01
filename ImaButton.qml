@@ -6,7 +6,7 @@ import Qt5Compat.GraphicalEffects
 
 Button {
     id: control
-    property int radiusBg: 6
+    property int radiusBg: 0
     property color colorBorder: enabled?(control.hovered?(danger? (control.down ? "#ff1600" : "#FF7070") : (control.down ? "#1677ff" : "#4096ff")):"#80808080"):Qt.rgba(0,0,0,0.45)
     property string contentDescription: text
     property string img:""

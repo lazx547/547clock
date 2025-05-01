@@ -5,11 +5,13 @@ import Qt.labs.platform
 import Qt5Compat.GraphicalEffects
 import QtQuick.Controls.Basic
 import GFile 1.2
+
 Window{
     id: window
     visible: true
-    flags: Qt.WindowStaysOnTopHint
-    visibility: Window.FullScreen
+    flags:Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+    width:win.width*win.scale
+    height:win.height*win.scale
     color: "transparent"
     opacity: window_opa.value*0.99+0.01
 
@@ -19,38 +21,14 @@ Window{
     function restart(){
         file.save()
         mstg_window.save()
-        $reload.win()
+        $reload.full()
     }
     function show(){
         file.read2("./value.txt")
         mstg_window.read()
         window.visible=true
     }
-    MouseArea{
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton|Qt.RightButton|Qt.MiddleButton
-        onClicked:{
-            if( mstg_window.visible)
-            {
-                mstg_window.visible=false
-                mstg_button.text="更多  >"
-            }
-            else menu.visible=!menu.visible
-        }
-        onWheel:(wheel)=>{
-                    if(true)
-                    {
-                        if(wheel.angleDelta.y>0) win.scale+=0.1
-                        else if(wheel.angleDelta.y<0)
-                        {
-                            if(win.scale>0.2)  win.scale-=0.1
-                        }
-                        window_scale.setValue((win.scale-0.01)/20.9)
-                        win.x=(sys_width-win.width*win.scale)/2
-                        win.y=(sys_height-win.height*win.scale)/2
-                    }
-                }
-    }
+
     Timer{//初始化计时器
         id:timer_set
         interval: 10
@@ -74,36 +52,33 @@ Window{
                         f2=false
                         file.read_()
                         mstg_window.read()
-                        win.scale=sys_width/win.width
-                        win.x=(sys_width-win.width*win.scale)/2
-                        win.y=(sys_height-win.height*win.scale)/2
+                        window.x=(sys_width-window.width)/2
+                        window.y=(sys_height-window.height)/2
                     }
                 }
             }
         }
     }
-
-    Rectangle{
+    Rectangle{//背景
         anchors.fill: parent
+        border.width: border_width.value*window.height/2
+        radius:border_radiu.value*window.height/2
+        border.color:Qt.rgba(color_border.r,color_border.g,color_border.b,color_border.a)
         color:Qt.rgba(color_back.r,color_back.g,color_back.b,color_back.a)
-    }
 
+    }
     Rectangle{//文字
         id:win
-        x:(sys_width-width*scale)/2
-        y:(sys_height-height*scale)/2
         transformOrigin: Item.TopLeft
         width:window_width.value*240+40
         height:window_height.value*100+10
+        color: "#00000000"
         scale:window_scale.value*80.9+0.01
-        border.width: border_width.value*win.height/2
-        radius:border_radiu.value*win.height/2
-        border.color:Qt.rgba(color_border.r,color_border.g,color_border.b,color_border.a)
-        color: "transparent"
+
         Text{
             id:time_text
             anchors.centerIn:  parent
-            property string type:"aahh:mm:ss"
+            property string type:"hh:mm:ss"
             font.pixelSize:text_size.value*100+5
             color:Qt.rgba(color_text.r,color_text.g,color_text.b,color_text.a)
             Timer{
@@ -170,20 +145,47 @@ Window{
                             if(show_type_zzz.checked)
                                 time_text.text+=":"+z
                         }
-                    }
+                       }
                     if(fresh_top.checked)
                     {
                         window.flags=Qt.FramelessWindowHint
                         window.flags=Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
                     }
-                    win.x=(sys_width-win.width*win.scale)/2
-                    win.y=(sys_height-win.height*win.scale)/2
                 }
                 running: false
                 repeat: true
             }
         }
+        MouseArea{
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton|Qt.RightButton|Qt.MiddleButton
+            onClicked: (event)=>{
+                           if(event.button===Qt.LeftButton) menu.visible=false
+                           else if(event.button===Qt.RightButton)
+                           {
+                               menu.x=window.x+mouseX*win.scale
+                               menu.y=window.y+mouseY*win.scale
+                               if(menu.x+menu.width>sys_width) menu.x-=menu.width
+                               if(menu.y+menu.height>sys_height) menu.y-=menu.height
+                               menu.visible=true
+                           }
+                           else if(event.button===Qt.MiddleButton && time_pauce.checked)
+                               refresh.running=!refresh.running
+                       }
+            onWheel:(wheel)=>{
+                        if(true)
+                        {
+                            if(wheel.angleDelta.y>0) win.scale+=0.1
+                            else if(wheel.angleDelta.y<0)
+                            {
+                                if(win.scale>0.2)  win.scale-=0.1
+                            }
+                            window_scale.setValue((win.scale-0.01)/20.9)
+                        }
+                    }
+        }
     }
+
     GFile{//文件操作
         id:file
         function save(){//正常保存
@@ -280,13 +282,18 @@ Window{
             a=1
         }
     }
-    Item{//右键菜单窗口
+    Window{//右键菜单窗口
         id:menu
         visible:false
+        flags:Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
         width: 204
-        height:sys_height+4
-        x:sys_width-202
-        y:-2
+        height:359
+        color:"transparent"
+        onActiveFocusItemChanged: {//失去焦点时隐藏
+            if(!activeFocusItem && !color_text.active && !color_border.active && !color_back.active && !saves_window.active && !mstg_window.active)
+                visible=false
+
+        }
         Rectangle{//右键菜单窗口背景
             id:menu_back
             width: menu.width
@@ -294,6 +301,7 @@ Window{
             border.width: 2
             border.color: "#80808080"
             transformOrigin: Item.TopLeft
+
         }
         Item{//右键菜单
             id:menuItems
@@ -301,433 +309,351 @@ Window{
             y:menu_back.border.width
             width: menu.width-menu_back.border.width
             height:menu.height-menu_back.border.width
-            ScrollView{
-                width: 200
-                height: menu.height-75
-                contentHeight: subItem.height
+            Item{//窗口
+                id:window_set
+                CscrollBar{
+                    id:window_opa
+                    text: "透明"
+                    maxValue: 100
+                    minValue: 1
+                }
+                CscrollBar{
+                    id:window_scale
+                    y:20
+                    text:"缩放"
+                    maxValue: 2100
+                    minValue: 10
+                    step:0.00047
+                    Component.onCompleted: setValue(0.047)
+                    onValueChanged: win.scale=value*20.9+0.01
+                }
+                CscrollBar{
+                    id:window_width
+                    y:40
+                    text:"宽度"
+                    maxValue: 280
+                    minValue: 40
+                    step:0.00416;
+                    reset:0.5
+                    Component.onCompleted: setValue(reset)
+                }
+                CscrollBar{
+                    id:window_height
+                    y:60
+                    text:"高度"
+                    maxValue: 110
+                    minValue: 10
+                    reset:0.3
+                    Component.onCompleted: setValue(reset)
+                }
+            }
+            Item{//文字
+                id:text_set
+                y:85
+                Text{
+                    text:"文字"
+                    font.pixelSize:18
+                }
                 Item{
-                    id:subItem
-                    height: 930
-                    y:5
-                    Item{//窗口
-                        id:window_set
-                        CscrollBar{
-                            id:window_opa
-                            text: "透明"
-                            maxValue: 100
-                            minValue: 1
+                    y:3
+                    x:menuItems.width-122
+                    ImaButton{//加粗
+                        id:text_bord
+
+                        width: 20
+                        height: 20
+                        img:"./images/bord_.png"
+                        checked: false
+                        onClicked: checked=!checked
+                        onCheckedChanged: {
+                            time_text.font.bold=checked
+                            img=checked? "./images/bord.png":"./images/bord_.png"
                         }
-                        CscrollBar{
-                            id:window_scale
-                            y:20
-                            text:"缩放"
-                            maxValue: 2100
-                            minValue: 10
-                            step:0.00047
-                            Component.onCompleted: setValue(0.047)
-                            onValueChanged: win.scale=value*20.9+0.01
-                        }
-                        CscrollBar{
-                            id:window_width
-                            y:40
-                            text:"宽度"
-                            maxValue: 280
-                            minValue: 40
-                            step:0.00416;
-                            reset:0.5
-                            Component.onCompleted: setValue(reset)
-                        }
-                        CscrollBar{
-                            id:window_height
-                            y:60
-                            text:"高度"
-                            maxValue: 110
-                            minValue: 10
-                            reset:0.3
-                            Component.onCompleted: setValue(reset)
+
+                    }
+                    Cbutton{//上移
+                        id:up
+                        width: 20
+                        height: 20
+                        x:20
+                        rotation: 90
+                        text: "<"
+                        onClicked:
+                        {
+                            time_text.anchors.verticalCenterOffset-=1
                         }
                     }
-                    Item{//文字
-                        id:text_set
-                        y:85
-                        Text{
-                            text:"文字"
-                            font.pixelSize:18
+                    Cbutton{//下移
+                        id:down
+                        width: 20
+                        height: 20
+                        x:40
+                        rotation: 90
+                        text: ">"
+                        onClicked:
+                        {
+                            time_text.anchors.verticalCenterOffset+=1
                         }
-                        Item{
-                            y:3
-                            x:menuItems.width-122
-                            ImaButton{//加粗
-                                id:text_bord
-                                radiusBg: 0
-                                width: 20
-                                height: 20
-                                img:"./images/bord_.png"
-                                checked: false
-                                onClicked: checked=!checked
-                                onCheckedChanged: {
-                                    time_text.font.bold=checked
-                                    img=checked? "./images/bord.png":"./images/bord_.png"
-                                }
 
-                            }
-                            Cbutton{//上移
-                                id:up
-                                width: 20
-                                height: 20
-                                x:20
-                                rotation: 90
-                                text: "<"
-                                onClicked:
-                                {
-                                    time_text.anchors.verticalCenterOffset-=1
-                                }
-
-
-                                radiusBg: 0
-                            }
-                            Cbutton{//下移
-                                id:down
-                                width: 20
-                                height: 20
-                                x:40
-                                rotation: 90
-                                text: ">"
-                                onClicked:
-                                {
-                                    time_text.anchors.verticalCenterOffset+=1
-                                }
-                                radiusBg: 0
-                            }
-                            Cbutton{//左移
-                                id:left
-                                width: 20
-                                height:20
-                                x:60
-                                text: "<"
-                                onClicked:
-                                {
-                                    time_text.anchors.horizontalCenterOffset-=1
-                                }
-                                radiusBg: 0
-                            }
-                            Cbutton{//右移
-                                id:right
-                                width: 20
-                                height: 20
-                                x:80
-                                text: ">"
-                                onClicked:
-                                {
-                                    time_text.anchors.horizontalCenterOffset+=1
-                                }
-                                radiusBg: 0
-                            }
-                            ImaButton{//重置
-                                width: 20
-                                height: 20
-                                x:100
-                                img:"./images/reset.png"
-                                onClicked: {
-                                    time_text.anchors.horizontalCenterOffset=0
-                                    time_text.anchors.verticalCenterOffset=0
-                                }
-                                radiusBg: 0
-                            }
-
+                    }
+                    Cbutton{//左移
+                        id:left
+                        width: 20
+                        height:20
+                        x:60
+                        text: "<"
+                        onClicked:
+                        {
+                            time_text.anchors.horizontalCenterOffset-=1
                         }
-                        CscrollBar{//字体大小
-                            y:25
-                            id:text_size
-                            minValue: 5
-                            maxValue: 105
-                            reset:0.32
-                            Component.onCompleted: setValue(reset)
-                            text:"大小"
+
+                    }
+                    Cbutton{//右移
+                        id:right
+                        width: 20
+                        height: 20
+                        x:80
+                        text: ">"
+                        onClicked:
+                        {
+                            time_text.anchors.horizontalCenterOffset+=1
+                        }
+
+                    }
+                    ImaButton{//重置
+                        width: 20
+                        height: 20
+                        x:100
+                        img:"./images/reset.png"
+                        onClicked: {
+                            time_text.anchors.horizontalCenterOffset=0
+                            time_text.anchors.verticalCenterOffset=0
+                        }
+
+                    }
+
+                }
+                CscrollBar{//字体大小
+                    y:25
+                    id:text_size
+                    minValue: 5
+                    maxValue: 105
+                    reset:0.32
+                    Component.onCompleted: setValue(reset)
+                    text:"大小"
+                }
+            }
+            Item{//边框
+                id:border_set
+                y:130
+                Text{
+                    text:"边框"
+                    font.pixelSize:18
+                }
+                CscrollBar{//边框大小
+                    y:25
+                    id:border_width
+                    minValue:0
+                    maxValue:win.height/2
+                    step:1/(win.width/2)
+                    reset:0.1
+                    Component.onCompleted: setValue(reset)
+                    text:"大小"
+                }
+                CscrollBar{//圆角大小
+                    y:45
+                    id:border_radiu
+                    minValue:0
+                    maxValue:win.height/2
+                    step:1/(win.width/2)
+                    reset:0
+                    Component.onCompleted: setValue(reset)
+                    text:"圆角"
+                }
+            }
+            Item{//颜色
+                id:color_set
+                y:195
+                Text{
+                    text:"颜色"
+                    font.pixelSize:18
+                }
+                Item{//文字
+                    y:20
+                    Text{
+                        text:"文字:"
+                        height: 60
+                        font.pixelSize: 16
+                    }
+                    Cbutton{
+                        x:menuItems.width-132
+                        width: 55
+                        height: 20
+                        text:"同边框"
+                        font.pixelSize: 14
+                        onClicked: {
+                            color_text.setColor(color_border.r,color_border.g,color_border.b,color_border.a)
+                        }
+
+                    }
+                    Cbutton{
+                        x:menuItems.width-77
+                        width: 55
+                        height: 20
+                        text:"同背景"
+                        font.pixelSize: 14
+                        onClicked: {
+                            color_text.setColor(color_back.r,color_back.g,color_back.b,color_back.a)
                         }
                     }
-                    Item{//边框
-                        id:border_set
-                        y:130
-                        Text{
-                            text:"边框"
-                            font.pixelSize:18
-                        }
-                        CscrollBar{//边框大小
-                            y:25
-                            id:border_width
-                            minValue:0
-                            maxValue:win.height/2
-                            step:1/(win.width/2)
-                            reset:0.1
-                            Component.onCompleted: setValue(reset)
-                            text:"大小"
-                        }
-                        CscrollBar{//圆角大小
-                            y:45
-                            id:border_radiu
-                            minValue:0
-                            maxValue:win.height/2
-                            step:1/(win.width/2)
-                            reset:0
-                            Component.onCompleted: setValue(reset)
-                            text:"圆角"
-                        }
-                    }
-                    Item{//颜色
-                        id:color_set
-                        y:195
-                        Text{
-                            text:"颜色"
-                            font.pixelSize:18
-                        }
-                        Item{//文字
-                            y:20
-                            Text{
-                                text:"文字:"
-                                height: 60
-                                font.pixelSize: 16
-                            }
-                            Cbutton{
-                                x:menuItems.width-112
-                                width: 55
-                                height: 20
-                                text:"同边框"
-                                font.pixelSize: 14
-                                onClicked: {
-                                    color_text.setColor(color_border.r,color_border.g,color_border.b,color_border.a)
-                                }
-                                radiusBg: 0
-                            }
-                            Cbutton{
-                                x:menuItems.width-57
-                                width: 55
-                                height: 20
-                                text:"同背景"
-                                font.pixelSize: 14
-                                onClicked: {
-                                    color_text.setColor(color_back.r,color_back.g,color_back.b,color_back.a)
-                                }
-                                radiusBg: 0
-                            }
-                            ColorPickerItem{
-                                id:color_text
-                                y:21
-                                Component.onCompleted: setColor(0,0,0,1)
-                            }
-                        }
-                        Item{//边框
-                            y:125
-                            Text{
-                                text:"边框:"
-                                height: 60
-                                font.pixelSize: 16
-                            }
-                            Cbutton{
-                                x:menuItems.width-112
-                                width: 55
-                                height: 20
-                                text:"同文字"
-                                font.pixelSize: 14
-                                onClicked: {
-                                    color_border.setColor(color_text.r,color_text.g,color_text.b,color_text.a)
-                                }
-                                radiusBg: 0
-                            }
-                            Cbutton{
-                                x:menuItems.width-57
-                                width: 55
-                                height: 20
-                                text:"同背景"
-                                font.pixelSize: 14
-                                onClicked: {
-                                    color_text.setColor(color_back.r,color_back.g,color_back.b,color_back.a)
-                                }
-                                radiusBg: 0
-                            }
-                            ColorPickerItem{
-                                id:color_border
-                                y:21
-                                Component.onCompleted: setColor(0.133,0.133,0.133,0.75)
-                            }
-                        }
-                        Item{//背景
-                            y:230
-                            Text{
-                                text:"背景:"
-                                height: 60
-                                font.pixelSize: 16
-                            }
-                            Cbutton{
-                                x:menuItems.width-112
-                                width: 55
-                                height: 20
-                                text:"同文字"
-                                font.pixelSize: 14
-                                onClicked: {
-                                    color_back.setColor(color_text.r,color_text.g,color_text.b,color_text.a)
-                                }
-                                radiusBg: 0
-                            }
-                            Cbutton{
-                                x:menuItems.width-57
-                                width: 55
-                                height: 20
-                                text:"同边框"
-                                font.pixelSize: 14
-                                onClicked: {
-                                    color_back.setColor(color_border.r,color_border.g,color_border.b,color_border.a)
-                                }
-                                radiusBg: 0
-                            }
-                            ColorPickerItem{
-                                id:color_back
-                                y:21
-                                Component.onCompleted: setColor(0.5,0.5,0.5,0.5)
+                    Cbutton{
+                        id:color_text_button
+                        x:menuItems.width-22
+                        width: 20
+                        height: 20
+                        text:">"
+                        onClicked: {
+                            if(text===">")
+                            {
+                                color_text.x=menu.x+menu.width
+                                color_text.y=menu.y+color_set.y+20
+                                if(color_text.x+color_text.width>sys_width) color_text.x-=menu.width+color_text.width
+                                color_text.visible=true
                             }
                         }
                     }
-                    Item{//存档
-                        id:saves_button
-                        y:530
-                        Text{
-                            text:"存档"
-                            font.pixelSize:18
+                    ColorPicker{
+                        id:color_text
+                        x:240
+                        onActiveFocusItemChanged: {//失去焦点时隐藏
+                            if(!activeFocusItem && !menu.active)
+                                visible=false
                         }
-                        Item {
-                            id: saves_window
-                            width: 200
-                            height: (menu.height-645)>=400 ? (menu.height-645) : 400
-                            y:25
-                            transformOrigin: Item.TopLeft
-                            Rectangle{
-                                anchors.fill: parent
-                                border.width: 2
-                                border.color: "#80808080"
-
+                        Component.onCompleted: setColor(0,0,0,1)
+                        onVisibleChanged: {
+                            if(visible)color_text_button.text="<"
+                            else color_text_button.text=">"
+                        }
+                    }
+                }
+                Item{//边框
+                    y:40
+                    Text{
+                        text:"边框:"
+                        height: 60
+                        font.pixelSize: 16
+                    }
+                    Cbutton{
+                        x:menuItems.width-132
+                        width: 55
+                        height: 20
+                        text:"同文字"
+                        font.pixelSize: 14
+                        onClicked: {
+                            color_border.setColor(color_text.r,color_text.g,color_text.b,color_text.a)
+                        }
+                    }
+                    Cbutton{
+                        x:menuItems.width-77
+                        width: 55
+                        height: 20
+                        text:"同背景"
+                        font.pixelSize: 14
+                        onClicked: {
+                            color_text.setColor(color_back.r,color_back.g,color_back.b,color_back.a)
+                        }
+                    }
+                    Cbutton{
+                        id:color_border_button
+                        x:menuItems.width-22
+                        width: 20
+                        height: 20
+                        text:">"
+                        onClicked: {
+                            if(text===">")
+                            {
+                                color_border.x=menu.x+menu.width
+                                color_border.y=menu.y+color_set.y+40
+                                if(color_border.x+color_border.width>sys_width) color_border.x-=menu.width+color_border.width
+                                //hidewindows()
+                                color_border.visible=true
                             }
-                            Rectangle{
-                                x:2
-                                y:4
-                                TextArea{
-                                    id:save_text
-                                    x:2
-                                    y:1
-                                    width: 120
-                                    height: 25
-                                    color: "black"
-                                    padding:2
-                                    font.pixelSize: 18
-                                    background:Rectangle{
-                                        anchors.fill: parent
-                                        border.width: 1
-                                        border.color: "#80808080"
-                                    }
-                                    onTextChanged: {
-                                        if(text.length>5)
-                                            text=text.slice(0,5)
-                                        if(text=="") save_new.enabled=false
-                                        else{
-                                            var a=false
-                                            for(var i=0;i<saves.sis.length;i++)
-                                                if(saves.sis[i].num==text)
-                                                {
-                                                    save_new.enabled=false
-                                                    a=true
-                                                    break
-                                                }
-                                            if(!a)
-                                                save_new.enabled=true
-                                        }
-                                    }
+                        }
+                    }
+                    ColorPicker{
+                        id:color_border
+                        x:240
+                        onActiveFocusItemChanged: {//失去焦点时隐藏
+                            if(!activeFocusItem && !menu.active)
+                                visible=false
+                        }
+                        Component.onCompleted: setColor(0.133,0.133,0.133,0.75)
+                        onVisibleChanged: {
+                            if(visible)color_border_button.text="<"
+                            else color_border_button.text=">"
+                        }
+                    }
+                }
+                Item{//背景
+                    y:60
+                    Text{
+                        text:"背景:"
+                        height: 60
+                        font.pixelSize: 16
+                    }
+                    Cbutton{
+                        x:menuItems.width-132
+                        width: 55
+                        height: 20
+                        text:"同文字"
+                        font.pixelSize: 14
+                        onClicked: {
+                            color_back.setColor(color_text.r,color_text.g,color_text.b,color_text.a)
+                        }
+                    }
+                    Cbutton{
+                        x:menuItems.width-77
+                        width: 55
+                        height: 20
+                        text:"同边框"
+                        font.pixelSize: 14
+                        onClicked: {
+                            color_back.setColor(color_border.r,color_border.g,color_border.b,color_border.a)
+                        }
 
-                                }
-
-                                Cbutton{
-                                    x:135
-                                    width: 60
-                                    text:"保存"
-                                    radiusBg: 0
-                                    id:save_new
-                                    enabled: false
-                                    onClicked: {
-                                        enabled=false
-                                        file.source="./file/saves/"+save_text.text+".txt"
-                                        file.save2(file.source)
-                                        var Csaves=Qt.createComponent("./CSaveItem.qml"),im
-                                        saves.sis.push(im=Csaves.createObject(saves))
-                                        im.file=file
-                                        im.par=saves
-                                        im.n=saves.sis.length
-                                        im.num=save_text.text
-                                        im.y=(im.n-1)*50
-                                        im.type=false
-                                        im.parent=saves
-                                        saves.height=50*im.n
-                                        file.source="./file/saves/num.txt"
-                                        var s=saves.sis.length+","
-                                        for(var i=0;i<saves.sis.length;i++)
-                                            s+=saves.sis[i].num+","
-                                        file.write(s)
-                                    }
-                                }
+                    }
+                    Cbutton{
+                        id:color_back_button
+                        x:menuItems.width-22
+                        width: 20
+                        height: 20
+                        text:">"
+                        onClicked: {
+                            if(text===">")
+                            {
+                                color_back.x=menu.x+menu.width
+                                color_back.y=menu.y+color_set.y+60
+                                if(color_back.x+color_back.width>sys_width) color_back.x-=menu.width+color_back.width
+                                //hidewindows()
+                                color_back.visible=true
                             }
-                            ScrollView{
-                                x:2
-                                y:35
-                                width: 200
-                                height:saves_window.height-41
-                                contentHeight: saves.height
-                                id:saves_scoll
-                                Item{
-                                    width: 200
-                                    id:saves
-                                    property var sis:[]
-                                    function remove(n){
-                                        n--
-                                        sis[n].destroy()
-                                        var i,s
-                                        for(i=n;i<sis.length-1;i++)
-                                        {
-                                            sis[i]=sis[i+1]
-                                            sis[i].n-=1
-                                            sis[i].y-=50
-                                        }
-                                        sis.pop()
-                                        saves.height-=50
-                                        s=sis.length+","
-                                        for(i=0;i<sis.length;i++)
-                                            s+=sis[i].num+","
-                                        file.source="./file/saves/num.txt"
-                                        file.write(s)
-                                    }
-                                }
-
-                                Component.onCompleted: {
-                                    file.source="./file/saves/num.txt"
-                                    var s=file.read()
-                                    var a=Number(s.slice(0,s.indexOf(","))),im
-                                    var Csaves=Qt.createComponent("./CSaveItem.qml")
-                                    for(var n=1;n<=a;n++)
-                                    {
-                                        saves.sis.push(im=Csaves.createObject(saves))
-                                        im.file=file
-                                        im.par=saves
-                                        im.n=n
-                                        im.type=false
-                                        s=s.slice(s.indexOf(",")+1,s.length)
-                                        im.num=s.slice(0,s.indexOf(","))
-                                        im.y=(n-1)*50
-                                        im.parent=saves
-                                    }
-                                    saves.height=50*a
-                                }
-                            }
+                        }
+                    }
+                    ColorPicker{
+                        id:color_back
+                        x:240
+                        onActiveFocusItemChanged: {//失去焦点时隐藏
+                            if(!activeFocusItem && !menu.active)
+                                visible=false
+                        }
+                        Component.onCompleted: setColor(0.5,0.5,0.5,0.5)
+                        onVisibleChanged: {
+                            if(visible)color_back_button.text="<"
+                            else color_back_button.text=">"
                         }
                     }
                 }
             }
-
             Item{//高级设置
                 y:menuItems.height-75
                 Text{
@@ -735,7 +661,7 @@ Window{
                     font.pixelSize:18
                 }
                 Cbutton{
-                    text:"窗口模式"
+                    text:"全屏模式"
 
                     width:70
                     height: 20
@@ -949,7 +875,6 @@ Window{
                 y:menuItems.height-52
                 ImaButton{//置顶
                     id:window_top
-                    radiusBg: 0
                     width: 25
                     height: 25
                     img:"./images/top.png"
@@ -972,7 +897,6 @@ Window{
                 }
                 ImaButton{//暂停
                     id:time_pauce
-                    radiusBg: 0
                     x:25
                     width: 25
                     height: 25
@@ -989,7 +913,6 @@ Window{
                 }
                 ImaButton{//锁定
                     id:window_lock
-                    radiusBg: 0
                     x:50
                     width: 25
                     height: 25
@@ -1005,7 +928,6 @@ Window{
                     onClicked: checked=!checked
                 }
                 ImaButton{//同步时间
-                    radiusBg: 0
                     x:75
                     width: 25
                     height: 25
@@ -1019,7 +941,6 @@ Window{
                     }
                 }
                 ImaButton{//重载数据
-                    radiusBg: 0
                     x:100
                     width: 25
                     height: 25
@@ -1050,86 +971,170 @@ Window{
                         }
                         menu.visible=false
                     }
-                    toolTipText:"清除数据"
-                    radiusBg: 0
                 }
-
-                ImaButton{//关于
-                    img: "./images/about.png"
-                    width:25
-                    height:25
-                    x:175
+                Cbutton{//存档
+                    id:saves_button
+                    x:150
+                    width: 50
+                    height: 25
+                    text:"存档>"
+                    font.pixelSize: 13
                     onClicked: {
-                        about.visible=true
-                        menu.visible=false
+                        if(text==="存档>")
+                        {
+                            saves_window.x=menu.x+menu.width
+                            saves_window.y=menu.y
+                            if(saves_window.x+saves_window.width>sys_width) saves_window.x-=menu.width+saves_window.width
+                            saves_window.visible=true
+                            text="存档<"
+                        }
+                        else
+                            text="存档>"
                     }
-                    toolTipText:"关于"
-                    radiusBg: 0
-                    Window{
-                        id:about
-                        width: 300
-                        height: 230
-                        minimumHeight: height
-                        maximumHeight: height
-                        minimumWidth: width
-                        maximumWidth: width
-                        Image {
-                            x:20
-                            y:10
-                            width: 70
-                            height: 70
-                            source: "./images/sys_Tray.png"
+                    Window {
+                        id: saves_window
+                        width: 164+saves_scoll.effectiveScrollBarWidth/2
+                        height: menu.height
+                        flags: Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+                        color: "#11111100"
+                        onActiveFocusItemChanged: {//失去焦点时隐藏
+                            if(!activeFocusItem)
+                            {
+                                visible=false
+                                saves_button.text="存档>"
+                            }
                         }
-                        Text{
-                            x:90
+                        Rectangle{
+                            anchors.fill: parent
+                            border.width: 2
+                            border.color: "#80808080"
+
+                        }
+                        Rectangle{
+                            x:2
+                            y:4
+                            TextArea{
+                                id:save_text
+                                x:2
+                                y:1
+                                width: 80
+                                height: 25
+                                color: "black"
+                                padding:2
+                                font.pixelSize: 18
+                                background:Rectangle{
+                                    anchors.fill: parent
+                                    border.width: 1
+                                    border.color: "#80808080"
+                                }
+                                onTextChanged: {
+                                    if(text.length>5)
+                                        text=text.slice(0,5)
+                                    if(text=="") save_new.enabled=false
+                                    else{
+                                        var a=false
+                                        for(var i=0;i<saves.sis.length;i++)
+                                            if(saves.sis[i].num==text)
+                                            {
+                                                save_new.enabled=false
+                                                a=true
+                                                break
+                                            }
+                                        if(!a)
+                                            save_new.enabled=true
+                                    }
+                                }
+
+                            }
+
+                            Cbutton{
+                                x:100
+                                width: 60
+                                text:"保存"
+
+                                id:save_new
+                                enabled: false
+                                onClicked: {
+                                    enabled=false
+                                    file.source="./file/saves/"+save_text.text+".txt"
+                                    file.save2(file.source)
+                                    var Csaves=Qt.createComponent("./CSaveItem.qml"),im
+                                    saves.sis.push(im=Csaves.createObject(saves))
+                                    im.file=file
+                                    im.par=saves
+                                    im.n=saves.sis.length
+                                    im.num=save_text.text
+                                    im.y=(im.n-1)*50
+                                    im.parent=saves
+                                    saves.height=50*im.n
+                                    file.source="./file/saves/num.txt"
+                                    var s=saves.sis.length+","
+                                    for(var i=0;i<saves.sis.length;i++)
+                                        s+=saves.sis[i].num+","
+                                    file.write(s)
+                                }
+                            }
+                        }
+                        ScrollView{
+                            x:2
                             y:35
-                            font.pixelSize: 20
-                            text:"547clock v0.12"
-                        }
-                        Image {
-                            x:20
-                            y:90
-                            width: 70
-                            height: 70
-                            source: "./images/Qt.png"
-                        }
-                        Text{
-                            x:90
-                            y:105
-                            font.pixelSize: 20
-                            text:"Made with Qt6 (qml)"
-                        }
-                        Text {
-                            x:90
-                            y:125
-                            text: "(Desktop Qt 6.8.3 MinGW 64-bit)"
-                        }
-                        Cbutton{
-                            text:"源代码"
-                            font.pixelSize: 16
-                            width: 80
-                            x:30
-                            y:170
-                            height: 20
-                            onClicked: Qt.openUrlExternally("https://github.com/lazx547/547clock")
-                        }
-                        Cbutton{
-                            text:"547官网"
-                            font.pixelSize: 16
-                            width: 100
-                            x:170
-                            y:170
-                            height: 20
-                            onClicked: Qt.openUrlExternally("https://lazx547.github.io")
+                            width: 320+effectiveScrollBarWidth
+                            height:saves_window.height*2-82
+                            scale: 0.5
+                            transformOrigin: Item.TopLeft
+                            contentHeight: saves.height*2
+                            id:saves_scoll
+                            Item{
+                                width: 160
+                                id:saves
+                                scale: 2
+                                transformOrigin: Item.TopLeft
+                                property var sis:[]
+                                function remove(n){
+                                    n--
+                                    sis[n].destroy()
+                                    var i,s
+                                    for(i=n;i<sis.length-1;i++)
+                                    {
+                                        sis[i]=sis[i+1]
+                                        sis[i].n-=1
+                                        sis[i].y-=50
+                                    }
+                                    sis.pop()
+                                    saves.height-=50
+                                    s=sis.length+","
+                                    for(i=0;i<sis.length;i++)
+                                        s+=sis[i].num+","
+                                    file.source="./file/saves/num.txt"
+                                    file.write(s)
+                                }
+                            }
+
+                            Component.onCompleted: {
+                                file.source="./file/saves/num.txt"
+                                var s=file.read()
+                                var a=Number(s.slice(0,s.indexOf(","))),im
+                                var Csaves=Qt.createComponent("./CSaveItem.qml")
+                                for(var n=1;n<=a;n++)
+                                {
+                                    saves.sis.push(im=Csaves.createObject(saves))
+                                    im.file=file
+                                    im.par=saves
+                                    im.n=n
+                                    s=s.slice(s.indexOf(",")+1,s.length)
+                                    im.num=s.slice(0,s.indexOf(","))
+                                    im.y=(n-1)*50
+                                    im.parent=saves
+                                }
+                                saves.height=50*a
+                            }
                         }
                     }
                 }
-
-
                 Item{//第二行
                     y:25
                     ImaButton{//退出
-                        radiusBg: 0
+
                         width: 25
                         height: 25
                         img:"./images/exit.png"
@@ -1151,20 +1156,19 @@ Window{
                             mstg_window.save()
                             file.save()
                         }
-                        radiusBg: 0
-                    }
-                    ImaButton{//隐藏按钮
-                        width: 25
-                        height: 25
-                        img: "./images/hide.png"
+                    } 
+                    ImaButton{//关于
+                        img: "./images/about.png"
+                        width:25
+                        height:25
                         x:50
                         onClicked: {
-                            window.visible=false
+                            about.visible=true
                             menu.visible=false
-                            mstg_window.visible=false
                         }
-                        toolTipText:"隐藏窗口"
-                        radiusBg: 0
+                        About{
+                            id:about
+                        }
                     }
                     ImaButton{//不保存并退出按钮
                         width: 25
@@ -1173,7 +1177,7 @@ Window{
                         x:75
                         onClicked: Qt.exit(0)
                         danger:true
-                        radiusBg: 0
+
                     }
                     Cbutton{//窗口上移
                         width: 25
@@ -1186,7 +1190,6 @@ Window{
                         {
                             window.y-=1
                         }
-                        radiusBg: 0
                     }
                     Cbutton{//窗口下移
                         width: 25
@@ -1199,7 +1202,6 @@ Window{
                         {
                             window.y+=1
                         }
-                        radiusBg: 0
                     }
                     Cbutton{//窗口左移
                         width: 25
@@ -1211,7 +1213,6 @@ Window{
                         {
                             window.x-=1
                         }
-                        radiusBg: 0
                     }
                     Cbutton{//窗口右移
                         width: 25
@@ -1223,11 +1224,19 @@ Window{
                         {
                             window.x+=1
                         }
-                        radiusBg: 0
                     }
                 }
             }
         }
     }
+    DragHandler {//按下拖动以移动窗口
+        grabPermissions: TapHandler.CanTakeOverFromAnything
+        onActiveChanged: {
+            if (active && !window_lock.checked)
+            {
+                menu.visible=false
+                window.startSystemMove()
+            }
+        }
+    }
 }
-

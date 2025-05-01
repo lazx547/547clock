@@ -99,6 +99,14 @@ Item{
                            handleCursorPos(mouse.x, mouse.y);
                        }
             onPositionChanged: (mouse) => handleCursorPos(mouse.x);
+            onWheel:(wheel)=>{
+                        if(true)
+                        {
+                            if(wheel.angleDelta.y>0) setValue(value+step)
+                            else if(wheel.angleDelta.y<0)
+                                setValue(value-step)
+                        }
+                    }
         }
     }
     Rectangle{

@@ -4,7 +4,7 @@ import QtQuick.Controls.Basic
 
 Button {
     id: control
-    property int radiusBg: 6
+    property int radiusBg: 0
     property color colorText: {
         if (enabled)
             return control.down ? "#1677ff" : control.hovered ? "#4096ff" : "#000000"
@@ -59,19 +59,4 @@ Button {
     Accessible.name: control.text
     Accessible.description: contentDescription
     Accessible.onPressAction: control.clicked();
-    ToolTip{
-        id:tooltip
-        background: Rectangle{
-            color: "white"
-            anchors.fill: parent
-            border.color: "black"
-        }
-        delay: 1000
-        timeout: 10000
-        visible: hovered
-        contentItem: Text{
-            text: toolTipText
-            font.pixelSize: 12
-        }
-    }
 }
