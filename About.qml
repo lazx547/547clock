@@ -19,7 +19,7 @@ Window{
         x:90
         y:35
         font.pixelSize: 20
-        text:"547clock v0.13"
+        text:"547clock v0.13.1"
     }
     Image {
         x:20
