@@ -10,6 +10,7 @@ Item {
     readonly property real g:greSlider.value
     readonly property real b:bluSlider.value
     readonly property real a:alpSlider.value
+    readonly property color color_:Qt.rgba(r,g,b,a)
     function setColor(r_,g_,b_,a_){
         redScroll.setValue(r_)
         greScroll.setValue(g_)
@@ -18,16 +19,9 @@ Item {
     }
     signal accepted();
     signal rejected();
-
-    Rectangle{
-        border.width: 2
-        border.color: "#80808080"
-        anchors.fill: parent
-    }
-
     Item {
-        x:2
-        y:2
+        x:1
+        y:1
         property point startPos: Qt.point(0, 0)
         property point offsetPos: Qt.point(0, 0)
         Rectangle {

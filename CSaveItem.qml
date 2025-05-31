@@ -7,27 +7,10 @@ Rectangle{
     property string num:""
     property int n
     property bool type:true
-    onTypeChanged: {
-        if(type)
-        {
-            width=160
-            b1.x=62
-            b2.x=92
-            b3.x=122
-        }
-        else
-        {
-            width=196
-            b1.x=72
-            b2.x=112
-            b3.x=152
-        }
-    }
-
-    border.width: 2
+    border.width: 1
     border.color: "#80808080"
-    width: 160
-    height: 50
+    width: 140
+    height: 20
     GFile{
         id:afile
     }
@@ -79,25 +62,20 @@ Rectangle{
         font.pixelSize: 17
     }
     Item{
-        x:5
-        y:5
-        width: 51
-        height: 40
+        x:1
+        y:1
+        width: 18
+        height: 18
         Grid {
-            id: previwBackground
+            id: background
             anchors.fill: parent
-            rows: 11
-            columns: 11
+            rows: 7
+            columns: 7
             clip: true
-
-            property real cellWidth: width / columns
-            property real cellHeight: height / rows
-
             Repeater {
                 model: parent.columns * parent.rows
-
                 Rectangle {
-                    width: previwBackground.cellWidth
+                    width: 3
                     height: width
                     color: (index % 2 == 0) ? "gray" : "transparent"
                 }
@@ -105,40 +83,42 @@ Rectangle{
         }
         Rectangle{
             id:sr1
-            width: 17
-            height: 40
+            width: 6
+            height: 18
         }
         Rectangle{
             id:sr2
-            width: 17
-            height: 40
-            x:17
+            width: 6
+            height: 18
+            x:6
         }
         Rectangle{
             id:sr3
-            width: 17
-            height: 40
-            x:34
+            width: 6
+            height: 18
+            x:12
         }
     }
     ImaButton{
         id:b1
-        x:62
+        x:80
         radiusBg: 0
-        width: 30
-        height: 20
-        y:25
+        colorBorder: "#00000000"
+        width: 18
+        height: 18
+        y:1
         img:"./images/reset.png"
         toolTipText: "加载"
         onClicked: file.read2("./file/saves/"+num+".txt")
     }
     ImaButton{
         id:b2
-        x:92
+        x:100
         radiusBg: 0
-        width: 30
-        height: 20
-        y:25
+        colorBorder: "#00000000"
+        width: 18
+        height: 18
+        y:1
         img:"./images/save.png"
         toolTipText:  "保存"
         onClicked: {
@@ -148,11 +128,12 @@ Rectangle{
     }
     ImaButton{
         id:b3
-        x:122
+        x:120
         radiusBg: 0
-        width: 30
-        height: 20
-        y:25
+        colorBorder: "#00000000"
+        width: 18
+        height: 18
+        y:1
         img:"./images/del.png"
         toolTipText:  "删除"
         onClicked: {

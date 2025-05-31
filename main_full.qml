@@ -305,6 +305,7 @@ Window{
                 width: 200
                 height: menu.height-75
                 contentHeight: subItem.height
+
                 Item{
                     id:subItem
                     height: 930
