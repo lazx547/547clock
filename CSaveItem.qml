@@ -56,10 +56,9 @@ Rectangle{
     }
 
     Text{
-        x:65
-        y:3
+        x:22
         text:num
-        font.pixelSize: 17
+        font.pixelSize: 15
     }
     Item{
         x:1

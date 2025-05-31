@@ -17,6 +17,8 @@ Button {
                 return "#000000"
             case 2:
                 return "#00000000"
+            case 3:
+                return control.down ? "#ff1600" : control.hovered ? "#FF7070" : "#000000"
             }
         }
         else return Qt.rgba(0,0,0,0.45);
@@ -28,6 +30,7 @@ Button {
             case 0:return control.down ? "#00ffffff" : control.hovered ? "#00ffffff" : "#00ffffff";
             case 1:return control.down ? "#4096ff" : control.hovered ? "#90c8f6" : (control.seleted?"#90c8f6":"#00ffffff");
             case 2:return control.seleted ? "#4096ff" : control.hovered ? "#d4d4d4" :"#00000000"
+            case 3: "#00000000"
             }
         }
         else return Qt.rgba(0,0,0,0.45);
@@ -38,6 +41,7 @@ Button {
             case 0:return control.down ? "#1677ff" : control.hovered ? "#69b1ff" : "#80808080";
             case 1:return "#FFFFFF";
             case 2:return "#00000000"
+            case 3:control.down ? "#ff1600" : control.hovered ? "#FF7070" : "#000000"
             }
         }
         else return "#4096ff";
