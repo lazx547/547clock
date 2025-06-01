@@ -7,6 +7,10 @@ Window{
     width: 10
     height:10
     property var win
+    function ghost(){
+        ghost.checked=!ghost.checked
+    }
+
     SystemTrayIcon {//托盘图标
         id:root
         visible: true
@@ -22,6 +26,7 @@ Window{
         menu:Menu{
             id:menu
             MenuItem{
+                id:ghost
                 text:"幽灵模式"
                 checkable: true
                 onCheckedChanged: {

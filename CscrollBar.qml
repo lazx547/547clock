@@ -8,7 +8,7 @@ Item{
     property real maxValue:100
     property real minValue:0
     property string text
-    property real step:0.01
+    property real step:1
     property real reset:-1
     property int text_width:30
     onTextChanged: text_.text=text

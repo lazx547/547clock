@@ -116,8 +116,20 @@ Window{
                         }
                     }
 
-                    if(h_type.checked) time_text.text=Qt.formatDateTime(new Date(), h_type_t.text)
-                    else{
+                    if(h_type.checked)
+                        time_text.text=Qt.formatDateTime(new Date(), h_type_t.text)
+                    else if(delT.delT==0)
+                    {
+                        time_text.text=Qt.formatDateTime(new Date(),"hh:mm")
+                        if(show_type_ss.checked)
+                        {
+                            time_text.text+=":"+Qt.formatDateTime(new Date(),"ss")
+                            if(show_type_zzz.checked)
+                                time_text.text+="."+Qt.formatDateTime(new Date(),"zzz")
+                        }
+                    }
+                    else
+                    {
                         var h,m,s,y,M,z,d;
                         h=Number(Qt.formatDateTime(new Date(),"hh"))
                         m=Number(Qt.formatDateTime(new Date(),"mm"))
@@ -260,6 +272,7 @@ Window{
             a+=window.x+","
             a+=window.y+","
             a+=win.scale+","
+            a+=font_.family+","
             file.source=b
             file.write(a)
         }
@@ -337,6 +350,8 @@ Window{
             if(b<=0.01)
                 b=1
             win.scale=b
+            s=s.slice(s.indexOf(",")+1,s.length)
+            font_.family=s.slice(0,s.indexOf(","))
         }
     }
     Window{//右键菜单窗口
@@ -344,7 +359,7 @@ Window{
         visible:false
         flags:Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
         width: 102
-        height:142
+        height:162
         color:"transparent"
         minimumWidth: 102
         onActiveFocusItemChanged: {//失去焦点时隐藏
@@ -446,6 +461,16 @@ Window{
             }
             Cbutton{
                 y:top_set.height*6
+                type:1
+                width: parent.width
+                text: "幽灵模式"
+                onClicked: {
+                    menu_.visible=false
+                    sysTray.ghost()
+                }
+            }
+            Cbutton{
+                y:top_set.height*7
                 type:1
                 width: parent.width
                 text: "关闭"
@@ -590,7 +615,7 @@ Window{
         id:custom
         visible:false
         flags:Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
-        width: 202
+        width: 212
         height:27
         color:"#00000000"
         property var sub_windows:[]
@@ -605,12 +630,14 @@ Window{
             buttons.push(border_button)
             buttons.push(font_button)
             buttons.push(back_button)
+            buttons.push(position_button)
             sub_windows.push(opacity_window)
             sub_windows.push(radius_window)
             sub_windows.push(size_window)
             sub_windows.push(border_window)
             sub_windows.push(font_window)
             sub_windows.push(back_window)
+            sub_windows.push(position_window)
         }
         function unChecked(){
             for(var i=0;i<buttons.length;i++)
@@ -735,7 +762,7 @@ Window{
                     color:"#00000000"
                     Rectangle{
                         anchors.fill: parent
-                        border.color: topic_color
+                        border.color: window.topic_color
                         color:"#f2f2f2"
                     }
                     CscrollBar{
@@ -747,7 +774,7 @@ Window{
                         text: "圆角"
                         text_width: 30
                         minValue: 0
-                        maxValue: oheight/2+1
+                        maxValue: window.oheight/2+1
                         onValueChanged: back.radius=value
                         Component.onCompleted: setValue(0)
                     }
@@ -777,7 +804,7 @@ Window{
                     color:"#00000000"
                     Rectangle{
                         anchors.fill: parent
-                        border.color: topic_color
+                        border.color: window.topic_color
                         color:"#f2f2f2"
                     }
                     CscrollBar{
@@ -835,7 +862,7 @@ Window{
                     color:"#00000000"
                     Rectangle{
                         anchors.fill: parent
-                        border.color: topic_color
+                        border.color: window.topic_color
                         color:"#f2f2f2"
                     }
                     CscrollBar{
@@ -849,13 +876,13 @@ Window{
                         minValue: 0
                         maxValue: window.oheight/2+1
                         Component.onCompleted: setValue(0)
-                        onValueChanged: border_width=value
+                        onValueChanged: window.border_width=value
                     }
                     ColorPickerItem{
                         id:border_color_picker
                         y:22
                         x:3
-                        onColor_Changed: border_color=color_
+                        onColor_Changed: window.border_color=color_
                     }
                 }
             }
@@ -885,7 +912,7 @@ Window{
                     Rectangle{
                         anchors.fill: parent
                         color:"#f2f2f2"
-                        border.color: topic_color
+                        border.color: window.topic_color
                     }
                     Cbutton{
                         id:font_bord
@@ -898,7 +925,7 @@ Window{
                         font.bold: true
                         checkable: true
                         seleted: checked
-                        onCheckedChanged: font_.bold=checked
+                        onCheckedChanged: window.font_.bold=checked
                     }
 
                     CscrollBar{
@@ -912,13 +939,13 @@ Window{
                         minValue: 1
                         maxValue: 180
                         Component.onCompleted: setValue(30)
-                        onValueChanged: font_.pixelSize=value
+                        onValueChanged: window.font_.pixelSize=value
                     }
                     ColorPickerItem{
                         id:font_color_picker
                         y:22
                         x:3
-                        onColor_Changed: font_color=color_
+                        onColor_Changed: window.font_color=color_
                     }
                     ComboBox {
                         id: font_combo
@@ -927,7 +954,8 @@ Window{
                         height: 20
                         transformOrigin: Item.TopLeft
                         model: Qt.fontFamilies()
-                        currentIndex: model.indexOf(font_.family)
+                        currentIndex: model.indexOf(window.font_.family)
+                        onActivated: window.font_.family = currentText
                     }
                     Cbutton{
                         id:up
@@ -1006,14 +1034,152 @@ Window{
                     Rectangle{
                         anchors.fill: parent
                         color:"#f2f2f2"
-                        border.color: topic_color
+                        border.color: window.topic_color
                     }
                     ColorPickerItem{
                         id:back_color_picker
                         y:3
                         x:3
-                        onColor_Changed: back_color=color_
+                        onColor_Changed: window.back_color=color_
                         Component.onCompleted: setColor(0,0,0,0)
+                    }
+                }
+            }
+            Cbutton{
+                id:position_button
+                x:160
+                type:2
+                width: 25
+                height: 25
+                onClicked: {
+                    custom.unChecked()
+                    checked=true
+                }
+                seleted: checked
+                img:"./images/position.png"
+                Window{
+                    id:position_window
+                    opacity: custom.opacity
+                    visible:custom.visible?position_button.checked:false
+                    flags:Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint
+                    x:custom.x
+                    y:custom.show_above?custom.y-4-height:custom.y+31
+                    width: 102
+                    height:64
+                    color:"#00000000"
+                    Rectangle{
+                        anchors.fill: parent
+                        color:"#f2f2f2"
+                        border.color: window.topic_color
+                    }
+                    Text{
+                        text: "位置"
+                        font.pixelSize: 16
+                    }
+                    Cbutton{
+                        transformOrigin: Item.Center
+                        width: 15
+                        height: 15
+                        x:parent.width-60
+                        y:2.5
+                        rotation: 90
+                        text: "<"
+                        onClicked:window.y-=1
+                        radiusBg: 0
+                        colorBorder: "#00000000"
+                    }
+                    Cbutton{
+                        transformOrigin: Item.Center
+                        width: 15
+                        height: 15
+                        rotation: 90
+                        x:parent.width-45
+                        y:2.5
+                        text: ">"
+                        onClicked:window.y+=1
+                        radiusBg: 0
+                        colorBorder: "#00000000"
+                    }
+                    Cbutton{
+                        width: 15
+                        height: 15
+                        x:parent.width-30
+                        y:2.5
+                        text: "<"
+                        onClicked:window.x-=1
+                        radiusBg: 0
+                        colorBorder: "#00000000"
+                    }
+                    Cbutton{
+                        width: 15
+                        height: 15
+                        x:parent.width-15
+                        y:2.5
+                        text: ">"
+                        onClicked:window.x+=1
+                        radiusBg: 0
+                        colorBorder: "#00000000"
+                    }
+                    Text{
+                        text: "水平"
+                        font.pixelSize: 16
+                        y:21
+                    }
+                    ImaButton{
+                        width: 20
+                        height: 20
+                        x:40
+                        y:21
+                        rotation: 270
+                        onClicked: window.x=0
+                        img:"./images/top.png"
+                    }
+                    ImaButton{
+                        width: 20
+                        height: 20
+                        x:60
+                        y:21
+                        onClicked: window.x=(sys_width-window.width)/2
+                        img:"./images/center.png"
+                    }
+                    ImaButton{
+                        width: 20
+                        height: 20
+                        x:80
+                        y:21
+                        rotation: 90
+                        onClicked: window.x=sys_width-window.width
+                        img:"./images/top.png"
+                    }
+                    Text{
+                        text: "竖直"
+                        font.pixelSize: 16
+                        y:42
+                    }
+                    ImaButton{
+                        width: 20
+                        height: 20
+                        x:40
+                        y:42
+                        onClicked: window.y=0
+                        img:"./images/top.png"
+                    }
+                    ImaButton{
+                        width: 20
+                        height: 20
+                        x:60
+                        y:42
+                        onClicked: window.y=(sys_height-window.height)/2
+                        img:"./images/center.png"
+                    }
+                    ImaButton{
+                        width: 20
+                        height: 20
+                        x:80
+                        y:42
+                        rotation: 180
+                        onClicked: window.y=sys_height-window.height
+                        img:"./images/top.png"
                     }
                 }
             }
@@ -1026,6 +1192,7 @@ Window{
                     custom_button.checked=false
                     custom.visible=false
                     custom.unChecked()
+                    file.save()
                     mouse_area.custon_show=false
                 }
 
