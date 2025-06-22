@@ -1377,10 +1377,24 @@ Window{
                 Cbutton{
                     y:200
                     x:2
-                    width: 180
+                    width: 120
                     height: 20
                     text: "保存"
                     onClicked: setting.save()
+                }
+                Cbutton{
+                    y:200
+                    x:122
+                    width: 60
+                    height: 20
+                    text: "定位"
+                    onClicked:
+                    {
+                        file.source="./setting.ini"
+                        file.showPath()
+                        file.source="./value.txt"
+                        file.showPath()
+                    }
                 }
                 ImaButton{
                     img:"./images/about.png"
